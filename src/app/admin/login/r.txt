@@ -1,0 +1,46 @@
+// import { NextResponse } from "next/server";
+// import { verifyPassword, signSession, isAdminAuthEnabled, sessionCookieName } from "@/lib/auth";
+
+// export async function POST(req: Request) {
+//   if (!isAdminAuthEnabled()) {
+//     return NextResponse.json({ error: "auth_not_enabled" }, { status: 400 });
+//   }
+
+//   const body = await req.json();
+//   const { email, password } = body || {};
+
+//   const adminEmail = process.env.ADMIN_EMAIL;
+//   const adminSalt = process.env.ADMIN_PASSWORD_SALT;
+//   const adminHash = process.env.ADMIN_PASSWORD_HASH;
+
+//   if (!adminEmail || !adminSalt || !adminHash) {
+//     return NextResponse.json({ error: "server_misconfigured" }, { status: 500 });
+//   }
+
+//   if (email !== adminEmail) {
+//     return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+//   }
+
+//   const ok = verifyPassword(password, adminSalt, adminHash);
+//   if (!ok) {
+//     return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+//   }
+
+//   const token = signSession({ email });
+
+//   const res = NextResponse.json({ ok: true });
+//   const secure = process.env.NODE_ENV === "production";
+//   const maxAge = Number(process.env.AUTH_SESSION_MAX_AGE_SECONDS || 60 * 60 * 24);
+
+//   res.cookies.set({
+//     name: sessionCookieName(),
+//     value: token,
+//     httpOnly: true,
+//     path: "/",
+//     sameSite: "lax",
+//     secure,
+//     maxAge,
+//   });
+
+//   return res;
+// }

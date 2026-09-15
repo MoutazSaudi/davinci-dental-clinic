@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+model Service {
+  id           String                 @id @default(cuid())
+  slug         String                 @unique
+  status       ContentStatus          @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  translations ServiceTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model ServiceTranslation {
+  id              String   @id @default(cuid())
+  service         Service  @relation(fields: [serviceId], references: [id])
+  serviceId       String
+  locale          String
+  title           String
+  shortDescription String?
+  description     String?
+  seoTitle        String?
+  seoDescription  String?
+
+  @@unique([serviceId, locale])
+}
+
+model Doctor {
+  id           String               @id @default(cuid())
+  slug         String               @unique
+  status       ContentStatus        @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  translations DoctorTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model DoctorTranslation {
+  id        String  @id @default(cuid())
+  doctor    Doctor  @relation(fields: [doctorId], references: [id])
+  doctorId  String
+  locale    String
+  name      String
+  bio       String?
+  seoTitle  String?
+  seoDescription String?
+
+  @@unique([doctorId, locale])
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  author       String
+  status       ContentStatus @default(PUBLISHED)
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  translations TestimonialTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model TestimonialTranslation {
+  id             String @id @default(cuid())
+  testimonial    Testimonial @relation(fields: [testimonialId], references: [id])
+  testimonialId  String
+  locale         String
+  content        String
+
+  @@unique([testimonialId, locale])
+}
+
+model FAQ {
+  id           String   @id @default(cuid())
+  status       ContentStatus @default(PUBLISHED)
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  translations FAQTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model FAQTranslation {
+  id       String @id @default(cuid())
+  faq      FAQ    @relation(fields: [faqId], references: [id])
+  faqId    String
+  locale   String
+  question String
+  answer   String
+
+  @@unique([faqId, locale])
+}
+
+model BlogPost {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  status       ContentStatus @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  translations BlogPostTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model BlogPostTranslation {
+  id         String @id @default(cuid())
+  post       BlogPost @relation(fields: [postId], references: [id])
+  postId     String
+  locale     String
+  title      String
+  excerpt    String?
+  content    String?
+  seoTitle   String?
+  seoDescription String?
+
+  @@unique([postId, locale])
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  patientName String
+  patientPhone String
+  scheduledAt DateTime
+  status      AppointmentStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}

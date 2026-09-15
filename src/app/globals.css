@@ -1,26 +1,484 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* =========================================================
+   Dental Clinic — Global Design System
+   Modern Medical / Clean / Premium
+   ========================================================= */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@utility container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  
+  padding-left: 1rem;
+  padding-right: 1rem;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @media (min-width: 1024px) {
+    padding-left: 50px;
+    padding-right: 50px;
+    max-width: calc(100% - 100px);  
   }
 }
 
+:root {
+  /* ---------------------------------------------------------
+     Brand Colors
+     --------------------------------------------------------- */
+  --color-primary: #0b3b5a;
+  --color-primary-light: #155779;
+  --color-primary-dark: #072b42;
+
+  --color-gold: #c6a664;
+  --color-gold-light: #d8bd86;
+  --color-gold-dark: #a98b4d;
+
+  --color-teal: #2b7a78;
+  --color-teal-light: #3d918e;
+  --color-teal-dark: #216361;
+
+  --color-mint: #a8d5c6;
+  --color-mint-light: #dff0ea;
+  --color-mint-dark: #8fc5b3;
+
+  /* ---------------------------------------------------------
+     Neutral Colors
+     --------------------------------------------------------- */
+  --color-white: #ffffff;
+  --color-background: #ffffff;
+  --color-background-soft: #f7faf9;
+  --color-background-muted: #f1f6f4;
+
+  --color-surface: #ffffff;
+  --color-surface-soft: #f8fafb;
+
+  --color-foreground: #172b36;
+  --color-foreground-muted: #5c6b73;
+  --color-foreground-light: #849198;
+
+  --color-border: #e3ebe9;
+  --color-border-light: #edf2f1;
+  --color-border-dark: #cddad7;
+
+  /* ---------------------------------------------------------
+     Semantic Colors
+     --------------------------------------------------------- */
+  --color-success: #2b7a78;
+  --color-success-soft: #e7f4f1;
+
+  --color-warning: #c6a664;
+  --color-warning-soft: #faf5e9;
+
+  --color-error: #b84a4a;
+  --color-error-soft: #fbeded;
+
+  --color-info: #0b3b5a;
+  --color-info-soft: #eaf2f7;
+
+  /* ---------------------------------------------------------
+     Layout
+     --------------------------------------------------------- */
+  --container-width: 1280px;
+  --content-width: 1180px;
+
+  /* ---------------------------------------------------------
+     Border Radius
+     --------------------------------------------------------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+
+  /* ---------------------------------------------------------
+     Shadows
+     --------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(11, 59, 90, 0.04);
+  --shadow-sm: 0 2px 8px rgba(11, 59, 90, 0.06);
+  --shadow-md: 0 8px 24px rgba(11, 59, 90, 0.08);
+  --shadow-lg: 0 16px 40px rgba(11, 59, 90, 0.10);
+
+  /* ---------------------------------------------------------
+     Transitions
+     --------------------------------------------------------- */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* ---------------------------------------------------------
+     Application
+     --------------------------------------------------------- */
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+}
+
+/* =========================================================
+   Tailwind Theme
+   ========================================================= */
+
+@theme inline {
+  /* Brand */
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
+
+  --color-gold: var(--color-gold);
+  --color-gold-light: var(--color-gold-light);
+  --color-gold-dark: var(--color-gold-dark);
+
+  --color-teal: var(--color-teal);
+  --color-teal-light: var(--color-teal-light);
+  --color-teal-dark: var(--color-teal-dark);
+
+  --color-mint: var(--color-mint);
+  --color-mint-light: var(--color-mint-light);
+  --color-mint-dark: var(--color-mint-dark);
+
+  /* Neutral */
+  --color-background: var(--color-background);
+  --color-background-soft: var(--color-background-soft);
+  --color-background-muted: var(--color-background-muted);
+
+  --color-surface: var(--color-surface);
+  --color-surface-soft: var(--color-surface-soft);
+
+  --color-foreground: var(--color-foreground);
+  --color-foreground-muted: var(--color-foreground-muted);
+  --color-foreground-light: var(--color-foreground-light);
+
+  --color-border: var(--color-border);
+  --color-border-light: var(--color-border-light);
+  --color-border-dark: var(--color-border-dark);
+
+  /* Semantic */
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+
+  --color-error: var(--color-error);
+  --color-error-soft: var(--color-error-soft);
+
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+
+  /* Typography */
+  --font-sans: var(--font-inter);
+  --font-arabic: var(--font-cairo);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Arabic */
+html[lang="ar"],
+html[dir="rtl"],
+html[lang="ar"] body,
+html[dir="rtl"] body {
+  font-family: var(--font-cairo), Arial, Helvetica, sans-serif;
+}
+
+/* English */
+html[lang="en"],
+html[dir="ltr"],
+html[lang="en"] body,
+html[dir="ltr"] body {
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* =========================================================
+   Typography
+   ========================================================= */
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+  color: var(--color-foreground-muted);
+  line-height: 1.8;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--color-mint);
+  color: var(--color-primary);
+}
+
+/* =========================================================
+   Scrollbar
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-teal);
+}
+
+/* =========================================================
+   Focus
+   ========================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   Reusable Containers
+   ========================================================= */
+
+.content-container {
+  width: min(100% - 2rem, var(--content-width));
+  margin-inline: auto;
+}
+
+/* =========================================================
+   Utility Classes
+   ========================================================= */
+
+.text-primary { color: var(--color-primary); }
+.text-gold { color: var(--color-gold); }
+.text-teal { color: var(--color-teal); }
+.text-muted { color: var(--color-foreground-muted); }
+
+.bg-primary { background-color: var(--color-primary); }
+.bg-teal { background-color: var(--color-teal); }
+.bg-mint { background-color: var(--color-mint); }
+.bg-soft { background-color: var(--color-background-soft); }
+.bg-muted { background-color: var(--color-background-muted); }
+
+/* =========================================================
+   Buttons
+   ========================================================= */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding-inline: 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 600;
+  transition: background-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding-inline: 1.25rem;
+  border: 1px solid var(--color-teal);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-teal);
+  font-weight: 600;
+  transition: background-color var(--transition-normal), color var(--transition-normal), transform var(--transition-normal);
+}
+
+.btn-secondary:hover {
+  background: var(--color-teal);
+  color: var(--color-white);
+  transform: translateY(-1px);
+}
+
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding-inline: 1.25rem;
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-md);
+  background: var(--color-gold);
+  color: var(--color-white);
+  font-weight: 600;
+  transition: background-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.btn-gold:hover {
+  background: var(--color-gold-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   Cards
+   ========================================================= */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+}
+
+.card:hover {
+  border-color: var(--color-border-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   Form Elements
+   ========================================================= */
+
+.input {
+  width: 100%;
+  min-height: 46px;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-foreground);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input::placeholder {
+  color: var(--color-foreground-light);
+}
+
+.input:hover {
+  border-color: var(--color-border-dark);
+}
+
+.input:focus {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px rgba(43, 122, 120, 0.1);
+}
+
+/* =========================================================
+   Section Helpers
+   ========================================================= */
+
+.section { padding-block: 5rem; }
+.section-soft { padding-block: 5rem; background: var(--color-background-soft); }
+.section-mint { padding-block: 5rem; background: var(--color-mint-light); }
+
+/* =========================================================
+   Decorative Elements
+   ========================================================= */
+
+.gold-line {
+  width: 48px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-gold);
+}
+
+.teal-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-teal);
+}
+
+/* =========================================================
+   Images
+   ========================================================= */
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.image-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================================================
+   Accessibility
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .content-container {
+    width: min(100% - 1.5rem, var(--container-width));
+  }
+
+  .section, .section-soft, .section-mint {
+    padding-block: 3.5rem;
+  }
 }

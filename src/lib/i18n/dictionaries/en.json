@@ -1,0 +1,15 @@
+{
+  "siteTitle": "Damascus Dental Clinic",
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "about": "About",
+    "doctors": "Doctors",
+    "gallery": "Gallery",
+    "faq": "FAQ",
+    "equipment": "Technology",
+    "blog": "Blog",
+    "contact": "Contact",
+    "appointment": "Appointment"
+  }
+}
