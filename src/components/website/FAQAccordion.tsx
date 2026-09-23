@@ -24,20 +24,20 @@ export function FAQAccordion({ items, locale }: FAQAccordionProps) {
         const buttonId = `faq-button-${index}`;
 
         return (
-          <div key={`${item.question}-${index}`} className="overflow-hidden rounded-[22px] border border-[#e5eeeb] bg-white shadow-[0_8px_22px_rgba(11,59,90,0.03)]">
+          <div key={`${item.question}-${index}`} className="overflow-hidden rounded-[22px] border border-border bg-surface shadow-[0_8px_22px_rgba(122,28,81,0.03)]">
             <button
               id={buttonId}
               type="button"
               aria-expanded={isOpen}
               aria-controls={panelId}
               onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-[#f7faf9] sm:px-6"
+              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-background-soft sm:px-6"
             >
-              <span className="text-base font-semibold text-[#0b3b5a] sm:text-lg">
+              <span className="text-base font-semibold text-primary sm:text-lg">
                 {item.question}
               </span>
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full bg-[#edf6f5] text-xl text-[#2b7a78] transition-transform ${
+                className={`flex h-8 w-8 items-center justify-center rounded-full bg-mint text-xl text-teal transition-transform ${
                   isOpen ? "rotate-45" : "rotate-0"
                 }`}
                 aria-hidden="true"
@@ -52,7 +52,7 @@ export function FAQAccordion({ items, locale }: FAQAccordionProps) {
               }`}
             >
               <div className="overflow-hidden">
-                <p className="px-5 pb-5 pt-1 text-sm leading-7 text-slate-600 sm:px-6 sm:text-base" dir={isArabic ? "rtl" : "ltr"}>
+                <p className="px-5 pb-5 pt-1 text-sm leading-7 text-foreground-muted sm:px-6 sm:text-base" dir={isArabic ? "rtl" : "ltr"}>
                   {item.answer}
                 </p>
               </div>

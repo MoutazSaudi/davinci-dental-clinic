@@ -11,14 +11,14 @@ export function Topbar({ title }: { title?: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between bg-white p-4 border-b">
-      <div className="text-lg font-semibold" style={{ color: "#0B3B5A" }}>
+    <div className="flex items-center justify-between bg-surface p-4 border-b border-border">
+      <div className="text-lg font-semibold text-primary">
         {title || "Admin"}
       </div>
       <div className="flex items-center gap-3">
         <button
           onClick={handleLogout}
-          className="py-1 px-3 rounded bg-[#2B7A78] text-white hover:opacity-95 text-sm"
+          className="py-1 px-3 rounded bg-teal text-white hover:bg-teal-light text-sm"
         >
           Sign out
         </button>

@@ -68,7 +68,7 @@ export function HeroSection({ locale, content, slides }: HeroSectionProps) {
             "FACIAL PAIN",
           ],
       doctorCard: drMouhannadData, // استخدام بيانات الطبيب
-      bgImage: "/images/hero/hero1.jpeg",
+      bgImage: "/images/hero/hero1.webp",
     },
     // الشريحة الثانية (تم تحديثها لاستخدام الصورة الجديدة)
     {
@@ -92,7 +92,7 @@ export function HeroSection({ locale, content, slides }: HeroSectionProps) {
             "Immediate Smile",
           ],
       doctorCard: drMouhannadData, // استخدام نفس الطبيب
-      bgImage: "/images/hero/hero2.jpeg", // تعيين الصورة الجديدة هنا
+      bgImage: "/images/hero/hero2.webp", // تعيين الصورة الجديدة هنا
     },
   ];
 

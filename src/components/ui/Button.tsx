@@ -4,7 +4,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.R
 
 export function Button({ children, className = "", ...rest }: Props) {
   return (
-    <button {...rest} className={`px-4 py-2 rounded bg-blue-600 text-white ${className}`}>
+    <button {...rest} className={`px-4 py-2 rounded bg-primary text-white ${className}`}>
       {children}
     </button>
   );

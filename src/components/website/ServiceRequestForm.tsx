@@ -68,19 +68,19 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
   };
 
   return (
-    <div className="rounded-[28px] border border-[#e5eeeb] bg-white p-6 shadow-[0_18px_45px_rgba(11,59,90,0.06)] sm:p-8">
+    <div className="rounded-[28px] border border-border bg-surface p-6 shadow-[0_18px_45px_rgba(122,28,81,0.06)] sm:p-8">
       <div className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#2b7a78]">
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-teal">
           {isArabic ? "طلب تفاصيل" : "Request details"}
         </p>
-        <h3 className="mt-2 text-2xl font-black text-[#0b3b5a]">
+        <h3 className="mt-2 text-2xl font-black text-primary">
           {isArabic ? "اطلب معلومات أكثر عن الخدمة" : "Ask for more information"}
         </h3>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="service-name" className="mb-2 block text-sm font-semibold text-slate-700">
+          <label htmlFor="service-name" className="mb-2 block text-sm font-semibold text-foreground">
             {isArabic ? "الاسم الكامل" : "Full Name"}
           </label>
           <input
@@ -88,14 +88,14 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
             value={form.name}
             onChange={(event) => handleChange("name", event.target.value)}
             aria-invalid={Boolean(errors.name)}
-            className="h-12 w-full rounded-2xl border border-[#dfe9e6] bg-[#f9fbfb] px-4 text-base text-slate-800 outline-none transition focus:border-[#2b7a78] focus:ring-2 focus:ring-[#a8d5c6]"
+            className="h-12 w-full rounded-2xl border border-border-light bg-background-soft px-4 text-base text-foreground outline-none transition focus:border-teal focus:ring-2 focus:ring-mint-dark"
           />
-          {errors.name ? <p className="mt-2 text-sm text-red-600">{errors.name}</p> : null}
+          {errors.name ? <p className="mt-2 text-sm text-error">{errors.name}</p> : null}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="service-phone" className="mb-2 block text-sm font-semibold text-slate-700">
+            <label htmlFor="service-phone" className="mb-2 block text-sm font-semibold text-foreground">
               {isArabic ? "رقم الهاتف" : "Mobile Number"}
             </label>
             <input
@@ -104,13 +104,13 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
               value={form.phone}
               onChange={(event) => handleChange("phone", event.target.value)}
               aria-invalid={Boolean(errors.phone)}
-              className="h-12 w-full rounded-2xl border border-[#dfe9e6] bg-[#f9fbfb] px-4 text-base text-slate-800 outline-none transition focus:border-[#2b7a78] focus:ring-2 focus:ring-[#a8d5c6]"
+              className="h-12 w-full rounded-2xl border border-border-light bg-background-soft px-4 text-base text-foreground outline-none transition focus:border-teal focus:ring-2 focus:ring-mint-dark"
             />
-            {errors.phone ? <p className="mt-2 text-sm text-red-600">{errors.phone}</p> : null}
+            {errors.phone ? <p className="mt-2 text-sm text-error">{errors.phone}</p> : null}
           </div>
 
           <div>
-            <label htmlFor="service-email" className="mb-2 block text-sm font-semibold text-slate-700">
+            <label htmlFor="service-email" className="mb-2 block text-sm font-semibold text-foreground">
               {isArabic ? "البريد الإلكتروني" : "Email"}
             </label>
             <input
@@ -119,14 +119,14 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
               value={form.email}
               onChange={(event) => handleChange("email", event.target.value)}
               aria-invalid={Boolean(errors.email)}
-              className="h-12 w-full rounded-2xl border border-[#dfe9e6] bg-[#f9fbfb] px-4 text-base text-slate-800 outline-none transition focus:border-[#2b7a78] focus:ring-2 focus:ring-[#a8d5c6]"
+              className="h-12 w-full rounded-2xl border border-border-light bg-background-soft px-4 text-base text-foreground outline-none transition focus:border-teal focus:ring-2 focus:ring-mint-dark"
             />
-            {errors.email ? <p className="mt-2 text-sm text-red-600">{errors.email}</p> : null}
+            {errors.email ? <p className="mt-2 text-sm text-error">{errors.email}</p> : null}
           </div>
         </div>
 
         <div>
-          <label htmlFor="service-message" className="mb-2 block text-sm font-semibold text-slate-700">
+          <label htmlFor="service-message" className="mb-2 block text-sm font-semibold text-foreground">
             {isArabic ? "الرسالة" : "Message"}
           </label>
           <textarea
@@ -134,21 +134,21 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
             value={form.message}
             onChange={(event) => handleChange("message", event.target.value)}
             aria-invalid={Boolean(errors.message)}
-            className="min-h-32 w-full rounded-2xl border border-[#dfe9e6] bg-[#f9fbfb] px-4 py-3 text-base text-slate-800 outline-none transition focus:border-[#2b7a78] focus:ring-2 focus:ring-[#a8d5c6]"
+            className="min-h-32 w-full rounded-2xl border border-border-light bg-background-soft px-4 py-3 text-base text-foreground outline-none transition focus:border-teal focus:ring-2 focus:ring-mint-dark"
             placeholder={isArabic ? "أخبرنا عن احتياجك" : "Tell us what you need"}
           />
-          {errors.message ? <p className="mt-2 text-sm text-red-600">{errors.message}</p> : null}
+          {errors.message ? <p className="mt-2 text-sm text-error">{errors.message}</p> : null}
         </div>
 
         <button
           type="submit"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-[#0b3b5a] px-6 text-sm font-semibold text-white transition hover:bg-[#194a69]"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-light"
         >
           {isArabic ? "إرسال الطلب" : "Send request"}
         </button>
 
         {submitted ? (
-          <p className="text-sm font-medium text-[#2b7a78]" role="status">
+          <p className="text-sm font-medium text-teal" role="status">
             {isArabic ? "تم إرسال طلبك. سنعاود التواصل معك قريبًا." : "Your request has been sent. We will contact you soon."}
           </p>
         ) : null}
