@@ -21,97 +21,144 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
+enum AdminRole {
+  ADMIN
+  EDITOR
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+enum MessageSource {
+  CONTACT_FORM
+  SERVICE_REQUEST
+}
+
+// ───────────────────────── Admin users ─────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  // format: "<salt>:<scrypt-hash-base64>"
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ───────────────────────── Services ─────────────────────────
+
+model ServiceCategory {
+  id           String                       @id @default(cuid())
+  // e.g. "orthodontics", "medical-treatment" (same rule as getCategorySlug)
+  slug         String                       @unique
+  sortOrder    Int                          @default(0)
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
+  translations ServiceCategoryTranslation[]
+  services     Service[]
+}
+
+model ServiceCategoryTranslation {
+  id         String          @id @default(cuid())
+  category   ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  locale     String
+  name       String
+
+  @@unique([categoryId, locale])
+}
+
 model Service {
-  id           String                 @id @default(cuid())
-  slug         String                 @unique
-  status       ContentStatus          @default(DRAFT)
+  id           String               @id @default(cuid())
+  slug         String               @unique
+  category     ServiceCategory      @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  image        String
+  sourceUrl    String?
+  sourceUrlEn  String?
+  sortOrder    Int                  @default(0)
+  status       ContentStatus        @default(PUBLISHED)
   publishedAt  DateTime?
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
   translations ServiceTranslation[]
 
-  @@index([status, publishedAt])
-  @@index([createdAt])
+  @@index([status, sortOrder])
+  @@index([categoryId])
 }
 
 model ServiceTranslation {
-  id              String   @id @default(cuid())
-  service         Service  @relation(fields: [serviceId], references: [id])
-  serviceId       String
-  locale          String
-  title           String
+  id               String  @id @default(cuid())
+  service          Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId        String
+  locale           String
+  title            String
   shortDescription String?
-  description     String?
-  seoTitle        String?
-  seoDescription  String?
+  description      String?
+  highlights       String[]
+  // { intro, sections: [{heading, paragraphs[], bullets[]}], faqs: [{question, answer}] }
+  rich             Json?
+  seoTitle         String?
+  seoDescription   String?
 
   @@unique([serviceId, locale])
 }
 
+// ───────────────────────── Doctors ─────────────────────────
+
 model Doctor {
-  id           String               @id @default(cuid())
-  slug         String               @unique
-  status       ContentStatus        @default(DRAFT)
+  id           String              @id @default(cuid())
+  slug         String              @unique
+  image        String?
+  instagram    String?
+  linkedin     String?
+  sortOrder    Int                 @default(0)
+  status       ContentStatus       @default(PUBLISHED)
   publishedAt  DateTime?
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
   translations DoctorTranslation[]
 
-  @@index([status, publishedAt])
-  @@index([createdAt])
+  @@index([status, sortOrder])
 }
 
 model DoctorTranslation {
-  id        String  @id @default(cuid())
-  doctor    Doctor  @relation(fields: [doctorId], references: [id])
-  doctorId  String
-  locale    String
-  name      String
-  bio       String?
-  seoTitle  String?
+  id             String  @id @default(cuid())
+  doctor         Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctorId       String
+  locale         String
+  name           String
+  specialization String?
+  bio            String?
+  seoTitle       String?
   seoDescription String?
 
   @@unique([doctorId, locale])
 }
 
-model Testimonial {
-  id           String   @id @default(cuid())
-  author       String
-  status       ContentStatus @default(PUBLISHED)
-  publishedAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  translations TestimonialTranslation[]
-
-  @@index([status, publishedAt])
-  @@index([createdAt])
-}
-
-model TestimonialTranslation {
-  id             String @id @default(cuid())
-  testimonial    Testimonial @relation(fields: [testimonialId], references: [id])
-  testimonialId  String
-  locale         String
-  content        String
-
-  @@unique([testimonialId, locale])
-}
+// ───────────────────────── FAQ ─────────────────────────
 
 model FAQ {
-  id           String   @id @default(cuid())
-  status       ContentStatus @default(PUBLISHED)
+  id           String           @id @default(cuid())
+  sortOrder    Int              @default(0)
+  status       ContentStatus    @default(PUBLISHED)
   publishedAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   translations FAQTranslation[]
 
-  @@index([status, publishedAt])
-  @@index([createdAt])
+  @@index([status, sortOrder])
 }
 
 model FAQTranslation {
   id       String @id @default(cuid())
-  faq      FAQ    @relation(fields: [faqId], references: [id])
+  faq      FAQ    @relation(fields: [faqId], references: [id], onDelete: Cascade)
   faqId    String
   locale   String
   question String
@@ -120,13 +167,96 @@ model FAQTranslation {
   @@unique([faqId, locale])
 }
 
-model BlogPost {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  status       ContentStatus @default(DRAFT)
+// ───────────────────────── Gallery ─────────────────────────
+
+model GalleryAlbum {
+  id           String                  @id @default(cuid())
+  slug         String                  @unique
+  sortOrder    Int                     @default(0)
+  status       ContentStatus           @default(PUBLISHED)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  translations GalleryAlbumTranslation[]
+  images       GalleryImage[]
+
+  @@index([status, sortOrder])
+}
+
+model GalleryAlbumTranslation {
+  id          String       @id @default(cuid())
+  album       GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  albumId     String
+  locale      String
+  title       String
+  category    String
+  description String?
+
+  @@unique([albumId, locale])
+}
+
+model GalleryImage {
+  id        String       @id @default(cuid())
+  album     GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  albumId   String
+  url       String
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  @@index([albumId, sortOrder])
+}
+
+// ───────────────────────── Contact requests ─────────────────────────
+
+model ContactMessage {
+  id          String        @id @default(cuid())
+  name        String
+  phone       String
+  email       String?
+  message     String
+  source      MessageSource @default(CONTACT_FORM)
+  serviceSlug String?
+  locale      String        @default("ar")
+  status      MessageStatus @default(NEW)
+  adminNotes  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
+// ───────────────────────── Not wired to the dashboard yet ─────────────────────────
+
+model Testimonial {
+  id           String                   @id @default(cuid())
+  author       String
+  status       ContentStatus            @default(PUBLISHED)
   publishedAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  translations TestimonialTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model TestimonialTranslation {
+  id            String      @id @default(cuid())
+  testimonial   Testimonial @relation(fields: [testimonialId], references: [id], onDelete: Cascade)
+  testimonialId String
+  locale        String
+  content       String
+
+  @@unique([testimonialId, locale])
+}
+
+model BlogPost {
+  id           String                @id @default(cuid())
+  slug         String                @unique
+  status       ContentStatus         @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
   translations BlogPostTranslation[]
 
   @@index([status, publishedAt])
@@ -134,26 +264,26 @@ model BlogPost {
 }
 
 model BlogPostTranslation {
-  id         String @id @default(cuid())
-  post       BlogPost @relation(fields: [postId], references: [id])
-  postId     String
-  locale     String
-  title      String
-  excerpt    String?
-  content    String?
-  seoTitle   String?
+  id             String   @id @default(cuid())
+  post           BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId         String
+  locale         String
+  title          String
+  excerpt        String?
+  content        String?
+  seoTitle       String?
   seoDescription String?
 
   @@unique([postId, locale])
 }
 
 model Appointment {
-  id          String            @id @default(cuid())
-  patientName String
+  id           String            @id @default(cuid())
+  patientName  String
   patientPhone String
-  scheduledAt DateTime
-  status      AppointmentStatus @default(PENDING)
-  notes       String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  scheduledAt  DateTime
+  status       AppointmentStatus @default(PENDING)
+  notes        String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 }

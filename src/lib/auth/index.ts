@@ -1,157 +1,118 @@
 /**
- * Authentication abstraction placeholder.
+ * Admin authentication (signed cookie session + AdminUser table).
  *
- * This file intentionally does not implement production authentication.
- * It exposes a small helper used by the admin layout to enforce an
- * authorization boundary until a real provider is configured.
+ * - Auth is ALWAYS on in production. In development it is on unless AUTH_ENABLED=false.
+ * - Pages/layouts: `await requireAdminServer()`
+ * - Route handlers:  const auth = await requireAdminApi(); if (auth instanceof NextResponse) return auth;
+ *
+ * NOTE: layouts are not re-rendered on client-side navigation, so every admin API
+ * route handler must call requireAdminApi() itself. Never rely on the layout alone.
  */
-
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
+
+export { createPasswordRecord, verifyPasswordRecord } from "./password";
 
 const SESSION_COOKIE_NAME = "__adm_sess";
 
+export type AdminRole = "ADMIN" | "EDITOR";
+
+export type AdminSession = {
+  uid: string;
+  email: string;
+  role: AdminRole;
+  iat: number;
+};
+
 export function isAdminAuthEnabled() {
-  return process.env.AUTH_ENABLED === "true";
+  if (process.env.NODE_ENV === "production") return true;
+  return process.env.AUTH_ENABLED !== "false";
+}
+
+export function sessionCookieName() {
+  return SESSION_COOKIE_NAME;
+}
+
+export function sessionMaxAgeSeconds() {
+  const n = Number(process.env.AUTH_SESSION_MAX_AGE_SECONDS);
+  return Number.isFinite(n) && n > 0 ? n : 60 * 60 * 24;
 }
 
 function getAuthSecret() {
   const s = process.env.AUTH_SECRET;
-
-  if (!s) {
-    throw new Error(
-      "AUTH_SECRET environment variable is required when AUTH_ENABLED=true",
-    );
+  if (!s || s.length < 32) {
+    throw new Error("AUTH_SECRET must be set and at least 32 characters long.");
   }
-
   return s;
 }
 
-export function hashPassword(password: string, salt: string) {
-  const key = crypto.scryptSync(password, salt, 64);
-  return key.toString("base64");
+function sign(raw: string) {
+  return crypto.createHmac("sha256", getAuthSecret()).update(raw).digest("base64url");
 }
 
-export function verifyPassword(
-  password: string,
-  salt: string,
-  expectedHash: string,
-) {
-  try {
-    const h = hashPassword(password, salt);
-
-    return crypto.timingSafeEqual(
-      Buffer.from(h),
-      Buffer.from(expectedHash),
-    );
-  } catch {
-    return false;
-  }
-}
-
-export function signSession(payload: Record<string, unknown>) {
-  const secret = getAuthSecret();
-
-  const data = {
-    ...payload,
-    iat: Date.now(),
-  };
-
+export function signSession(payload: Omit<AdminSession, "iat">) {
+  const data: AdminSession = { ...payload, iat: Date.now() };
   const raw = Buffer.from(JSON.stringify(data)).toString("base64url");
-
-  const sig = crypto
-    .createHmac("sha256", secret)
-    .update(raw)
-    .digest("base64url");
-
-  return `${raw}.${sig}`;
+  return `${raw}.${sign(raw)}`;
 }
 
-export function verifySession(token: string | undefined) {
+export function verifySession(token: string | undefined): AdminSession | null {
   if (!token) return null;
 
   try {
-    const secret = getAuthSecret();
     const [raw, sig] = token.split(".");
+    if (!raw || !sig) return null;
 
-    if (!raw || !sig) {
-      return null;
-    }
-
-    const expected = crypto
-      .createHmac("sha256", secret)
-      .update(raw)
-      .digest("base64url");
-
+    const expected = sign(raw);
     if (
       Buffer.byteLength(sig) !== Buffer.byteLength(expected) ||
-      !crypto.timingSafeEqual(
-        Buffer.from(sig),
-        Buffer.from(expected),
-      )
+      !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))
     ) {
       return null;
     }
 
-    const data: unknown = JSON.parse(
-      Buffer.from(raw, "base64url").toString("utf8"),
-    );
+    const data = JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as Partial<AdminSession>;
 
-    if (!data || typeof data !== "object") {
+    if (
+      typeof data.uid !== "string" ||
+      typeof data.email !== "string" ||
+      (data.role !== "ADMIN" && data.role !== "EDITOR") ||
+      typeof data.iat !== "number"
+    ) {
       return null;
     }
 
-    const session = data as Record<string, unknown>;
+    if (Date.now() - data.iat > sessionMaxAgeSeconds() * 1000) return null;
 
-    const issuedAt =
-      typeof session.iat === "number" ? session.iat : 0;
-
-    const maxAge = Number(
-      process.env.AUTH_SESSION_MAX_AGE_SECONDS || 60 * 60 * 24,
-    );
-
-    if (Date.now() - issuedAt > maxAge * 1000) {
-      return null;
-    }
-
-    return session;
+    return data as AdminSession;
   } catch {
     return null;
   }
 }
 
-export async function requireAdminServer() {
-  // Use inside server components / layouts to guard the admin area.
-  if (!isAdminAuthEnabled()) return;
-
-  const ck = await cookies();
-  const token = ck.get(SESSION_COOKIE_NAME)?.value;
-
-  const session = verifySession(token);
-
-  if (!session) {
-    redirect("/admin/login");
+export async function getAdminSession(): Promise<AdminSession | null> {
+  if (!isAdminAuthEnabled()) {
+    return { uid: "dev", email: "dev@localhost", role: "ADMIN", iat: Date.now() };
   }
 
+  const ck = await cookies();
+  return verifySession(ck.get(SESSION_COOKIE_NAME)?.value);
+}
+
+/** For server components / layouts: redirects to the login page when not signed in. */
+export async function requireAdminServer(): Promise<AdminSession> {
+  const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
   return session;
 }
 
-export function requireAdminFromRequest(req: Request) {
-  // For route handlers: read cookie header and verify.
-  if (!isAdminAuthEnabled()) return null;
-
-  const cookieHeader = req.headers.get("cookie") || "";
-
-  const match = cookieHeader.match(
-    new RegExp(`${SESSION_COOKIE_NAME}=([^;]+)`),
-  );
-
-  const token = match ? decodeURIComponent(match[1]) : undefined;
-
-  return verifySession(token);
-}
-
-export function sessionCookieName() {
-  return SESSION_COOKIE_NAME;
+/** For route handlers: returns the session, or a 401 response to return immediately. */
+export async function requireAdminApi(): Promise<AdminSession | NextResponse> {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  return session;
 }

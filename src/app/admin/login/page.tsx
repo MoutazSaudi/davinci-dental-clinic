@@ -3,6 +3,12 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const ERRORS: Record<string, string> = {
+  invalid_credentials: "Incorrect email or password.",
+  too_many_attempts: "Too many attempts. Please try again in 15 minutes.",
+  invalid_input: "Please enter a valid email and password.",
+};
+
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,23 +20,24 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     try {
-      const res = await fetch(`/admin/login`, {
+      const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        setError(data?.error || "Login failed");
-        setLoading(false);
+        const data = await res.json().catch(() => null);
+        setError(ERRORS[data?.error as string] ?? "Login failed.");
         return;
       }
 
       router.push("/admin");
-    } catch (err) {
-      setError("Network error");
+      router.refresh();
+    } catch {
+      setError("Network error.");
     } finally {
       setLoading(false);
     }
@@ -51,6 +58,7 @@ export default function AdminLoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
+            autoComplete="username"
             required
           />
 
@@ -60,6 +68,7 @@ export default function AdminLoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
+            autoComplete="current-password"
             required
           />
 
@@ -67,7 +76,7 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 rounded bg-[#0B3B5A] text-white hover:opacity-95"
+            className="w-full py-2 px-4 rounded bg-[#0B3B5A] text-white hover:opacity-95 disabled:opacity-60"
             disabled={loading}
           >
             {loading ? "Signing in…" : "Sign in"}
