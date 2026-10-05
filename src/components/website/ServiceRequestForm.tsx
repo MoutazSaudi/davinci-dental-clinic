@@ -27,10 +27,14 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+    if (submitted) setSubmitted(false);
+    if (submitError) setSubmitError(null);
   };
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -59,12 +63,54 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       setSubmitted(false);
+      setSubmitError(null);
       return;
     }
 
-    setSubmitted(true);
-    setErrors({});
-    setForm({ name: "", phone: "", email: "", message: "" });
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          message: form.message.trim(),
+          locale: isArabic ? "ar" : "en",
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            (isArabic
+              ? "تعذر إرسال طلبك. حاول مرة أخرى."
+              : "Your request could not be sent. Please try again."),
+        );
+      }
+
+      setSubmitted(true);
+      setErrors({});
+      setForm({ name: "", phone: "", email: "", message: "" });
+    } catch (error) {
+      setSubmitted(false);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : isArabic
+            ? "تعذر إرسال طلبك. حاول مرة أخرى."
+            : "Unable to send your request. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -142,14 +188,27 @@ export function ServiceRequestForm({ locale }: ServiceRequestFormProps) {
 
         <button
           type="submit"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-light"
+          disabled={isSubmitting}
+          className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isArabic ? "إرسال الطلب" : "Send request"}
+          {isSubmitting
+            ? isArabic
+              ? "جارٍ الإرسال..."
+              : "Sending..."
+            : isArabic
+              ? "إرسال الطلب"
+              : "Send request"}
         </button>
 
         {submitted ? (
           <p className="text-sm font-medium text-teal" role="status">
             {isArabic ? "تم إرسال طلبك. سنعاود التواصل معك قريبًا." : "Your request has been sent. We will contact you soon."}
+          </p>
+        ) : null}
+
+        {submitError ? (
+          <p className="text-sm font-medium text-error" role="alert">
+            {submitError}
           </p>
         ) : null}
       </form>
