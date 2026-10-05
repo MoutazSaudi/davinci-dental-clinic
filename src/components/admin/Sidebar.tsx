@@ -2,33 +2,47 @@ import React from "react";
 import Link from "next/link";
 
 export function Sidebar() {
+  const navLinks = [
+    { href: "/admin/", label: "Overview" },
+    { href: "/admin/appointments", label: "Appointments" },
+    { href: "/admin/services", label: "Services" },
+    { href: "/admin/doctors", label: "Doctors" },
+    { href: "/admin/gallery", label: "Gallery" },
+    { href: "/admin/faq", label: "FAQ" },
+    { href: "/admin/settings", label: "Settings" },
+  ];
+
   return (
-    <aside className="w-64 bg-surface border-r border-border">
+    <aside 
+      className="w-64 h-full flex flex-col shadow-sm transition-all"
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderRight: "1px solid var(--color-border)",
+      }}
+    >
       <div className="p-6">
-        <div className="mb-6">
-          <div className="text-xl font-bold text-primary">Clinic Admin</div>
-          <div className="text-sm text-foreground-muted">Dashboard</div>
+        {/* Brand / Logo Section */}
+        <div className="mb-8">
+          <div className="text-xl font-bold" style={{ color: "var(--color-primary)" }}>
+            Clinic Admin
+          </div>
+          <div className="text-xs uppercase tracking-wider mt-1" style={{ color: "var(--color-foreground-muted)" }}>
+            Dashboard Management
+          </div>
         </div>
 
-        <nav className="space-y-2">
-          <Link href="/admin" className="block py-2 px-3 rounded text-foreground hover:bg-background-soft">
-            Overview
-          </Link>
-          <Link href="/admin/appointments" className="block py-2 px-3 rounded text-foreground hover:bg-background-soft">
-            Appointments
-          </Link>
-          <Link href="/admin/services" className="block py-2 px-3 rounded text-foreground hover:bg-background-soft">
-            Services
-          </Link>
-          <Link href="/admin/doctors" className="block py-2 px-3 rounded text-foreground hover:bg-background-soft">
-            Doctors
-          </Link>
-          <Link href="/admin/blog" className="block py-2 px-3 rounded text-foreground hover:bg-background-soft">
-            Blog
-          </Link>
-          <Link href="/admin/settings" className="block py-2 px-3 rounded text-foreground hover:bg-background-soft">
-            Settings
-          </Link>
+        {/* Navigation Links */}
+        <nav className="space-y-1.5">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex items-center py-2.5 px-3 rounded-lg text-sm font-medium transition-colors hover:bg-[var(--color-background-soft)]"
+              style={{ color: "var(--color-foreground)" }}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </aside>

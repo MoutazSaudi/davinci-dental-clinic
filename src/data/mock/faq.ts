@@ -34,5 +34,26 @@ export const homeFAQ: Record<"ar" | "en", LocalizedFAQItem[]> = {
   ],
 };
 
-// ─── أسئلة صفحة /faq ───
-export const faqCatalog: BilingualFAQItem[] = [];
+// ─── أسئلة صفحة /faq (تم دمج أسئلة الصفحة الرئيسية مبدئياً هنا لتظهر في الداشبورد) ───
+export const faqCatalog: BilingualFAQItem[] = [
+  {
+    question: {
+      ar: homeFAQ.ar[0].question,
+      en: homeFAQ.en[0].question,
+    },
+    answer: {
+      ar: homeFAQ.ar[0].answer,
+      en: homeFAQ.en[0].answer,
+    },
+  },
+  {
+    question: {
+      ar: homeFAQ.ar[1].question,
+      en: homeFAQ.en[1].question,
+    },
+    answer: {
+      ar: homeFAQ.ar[1].answer,
+      en: homeFAQ.en[1].answer,
+    },
+  },
+];
