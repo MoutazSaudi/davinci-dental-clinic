@@ -4,11 +4,13 @@ import React, { useEffect, useState } from "react";
 import AdminTable from "@/components/admin/AdminTable";
 import AdminModal from "@/components/admin/AdminModal";
 import AdminForm from "@/components/admin/AdminForm";
-import type { BilingualFAQItem } from "@/data/mock/faq"; // أو حسب مسار ملف الـ mock لديك
+import type { BilingualFAQItem } from "@/data/mock/faq";
 
-export default function FAQAdminClient({ initial }: { initial: BilingualFAQItem[] }) {
-  const [items, setItems] = useState<BilingualFAQItem[]>(initial || []);
-  const [selected, setSelected] = useState<BilingualFAQItem | null>(null);
+type FAQListItem = BilingualFAQItem & { id?: string };
+
+export default function FAQAdminClient({ initial }: { initial: FAQListItem[] }) {
+  const [items, setItems] = useState<FAQListItem[]>(initial || []);
+  const [selected, setSelected] = useState<FAQListItem | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -32,9 +34,7 @@ export default function FAQAdminClient({ initial }: { initial: BilingualFAQItem[
   }
 
   async function handleUpdate(data: any) {
-    // نفترض الاعتماد على مؤشر العنصر (index) أو معرف فريد إن توفر
-    const index = items.indexOf(selected!);
-    await fetch(`/api/admin/faq?index=${index}`, {
+    await fetch(`/api/admin/faq?id=${encodeURIComponent(selected?.id || "")}`, {
       method: "PUT",
       body: JSON.stringify(data),
       headers: { "Content-Type": "application/json" },
@@ -44,9 +44,10 @@ export default function FAQAdminClient({ initial }: { initial: BilingualFAQItem[
     await refresh();
   }
 
-  async function handleDelete(index: number) {
+  async function handleDelete(id?: string) {
+    if (!id) return;
     if (!confirm("Delete this FAQ item?")) return;
-    await fetch(`/api/admin/faq?index=${index}`, {
+    await fetch(`/api/admin/faq?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
     await refresh();
@@ -81,7 +82,7 @@ export default function FAQAdminClient({ initial }: { initial: BilingualFAQItem[
         </button>
       </div>
 
-      <AdminTable<BilingualFAQItem>
+      <AdminTable<FAQListItem>
         items={items}
         pageSize={8}
         emptyMessage="No FAQ items found."
@@ -109,7 +110,7 @@ export default function FAQAdminClient({ initial }: { initial: BilingualFAQItem[
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(index!)}
+                  onClick={() => handleDelete(item.id)}
                   className="py-1.5 px-3 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition-colors"
                 >
                   Delete

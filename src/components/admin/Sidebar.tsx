@@ -5,6 +5,7 @@ export function Sidebar() {
   const navLinks = [
     { href: "/admin/", label: "Overview" },
     { href: "/admin/appointments", label: "Appointments" },
+    { href: "/admin/messages", label: "Messages" },
     { href: "/admin/services", label: "Services" },
     { href: "/admin/doctors", label: "Doctors" },
     { href: "/admin/gallery", label: "Gallery" },

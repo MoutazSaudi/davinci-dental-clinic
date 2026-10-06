@@ -4,9 +4,9 @@ import prisma from "@/lib/prisma";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Name is required."),
-  phone: z.string().trim().min(7, "Phone number is required."),
+  phone: z.string().trim().min(7, "Phone number is required.").optional().or(z.literal("")),
   email: z.string().trim().email().optional().or(z.literal("")),
-  message: z.string().trim().min(10, "Message is too short."),
+  message: z.string().trim().min(3, "Message is too short."),
   locale: z.string().trim().default("ar"),
   serviceSlug: z.string().trim().optional(),
 });
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const created = await prisma.contactMessage.create({
       data: {
         name: payload.name,
-        phone: payload.phone,
+        phone: payload.phone || "",
         email: payload.email || null,
         message: payload.message,
         serviceSlug: payload.serviceSlug ?? null,

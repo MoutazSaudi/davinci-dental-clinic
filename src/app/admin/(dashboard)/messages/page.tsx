@@ -2,14 +2,16 @@ export const dynamic = "force-dynamic";
 
 import React from "react";
 import { requireAdminServer } from "@/lib/auth";
-import DoctorsAdminClient from "./DoctorsAdminClient";
+import MessagesAdminClient from "./MessagesAdminClient";
 
-export default async function DoctorsPage() {
+export default async function MessagesPage() {
   await requireAdminServer();
+
+  const initial = [];
 
   return (
     <div className="container mx-auto">
-      <DoctorsAdminClient initial={[]} />
+      <MessagesAdminClient initial={initial} />
     </div>
   );
 }

@@ -16,10 +16,15 @@ export default function DoctorsAdminClient({ initial }: { initial: DoctorItem[] 
   const [items, setItems] = useState<DoctorItem[]>(initial || []);
   const [selected, setSelected] = useState<DoctorItem | null>(null);
   const [open, setOpen] = useState(false);
+  const [pendingImage, setPendingImage] = useState("");
 
   useEffect(() => {
     setItems(initial || []);
   }, [initial]);
+
+  useEffect(() => {
+    setPendingImage(selected?.image || "");
+  }, [selected, open]);
 
   async function refresh() {
     const res = await fetch("/api/admin/doctors");
@@ -27,24 +32,46 @@ export default function DoctorsAdminClient({ initial }: { initial: DoctorItem[] 
     setItems(data || []);
   }
 
+  async function uploadImage(file: File | null) {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      alert("Image upload failed");
+      return;
+    }
+
+    const data = await res.json();
+    setPendingImage(data.url || "");
+  }
+
   async function handleCreate(data: any) {
     await fetch("/api/admin/doctors", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, image: pendingImage || data.image }),
       headers: { "Content-Type": "application/json" },
     });
     setOpen(false);
+    setPendingImage("");
     await refresh();
   }
 
   async function handleUpdate(data: any) {
     await fetch(`/api/admin/doctors?id=${encodeURIComponent(selected?.id || "")}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, image: pendingImage || data.image }),
       headers: { "Content-Type": "application/json" },
     });
     setSelected(null);
     setOpen(false);
+    setPendingImage("");
     await refresh();
   }
 
@@ -138,19 +165,34 @@ export default function DoctorsAdminClient({ initial }: { initial: DoctorItem[] 
         onClose={() => {
           setOpen(false);
           setSelected(null);
+          setPendingImage("");
         }}
       >
+        <div className="space-y-4 mb-4">
+          <label className="block font-medium text-sm text-gray-700">Upload image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => uploadImage(event.target.files?.[0] ?? null)}
+            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700"
+          />
+          {pendingImage && (
+            <img src={pendingImage} alt="Selected doctor" className="h-24 w-24 object-cover rounded-full border" />
+          )}
+        </div>
+
         <AdminForm
           initial={formInitialData as any}
           onCancel={() => {
             setOpen(false);
             setSelected(null);
+            setPendingImage("");
           }}
           onSubmit={async (formData: any) => {
             const doctorPayload = {
               name: formData.title?.en || formData.title,
               specialty: formData.category?.en || formData.category,
-              image: formData.image,
+              image: pendingImage || formData.image,
             };
 
             if (selected) await handleUpdate(doctorPayload);

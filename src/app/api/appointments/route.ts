@@ -5,8 +5,8 @@ import prisma from "@/lib/prisma";
 const appointmentSchema = z.object({
   name: z.string().trim().min(2, "Name is required.").optional(),
   patientName: z.string().trim().min(2, "Name is required.").optional(),
-  phone: z.string().trim().min(7, "Phone number is required.").optional(),
-  patientPhone: z.string().trim().min(7, "Phone number is required.").optional(),
+  phone: z.string().trim().min(7, "Phone number is required.").optional().or(z.literal("")),
+  patientPhone: z.string().trim().min(7, "Phone number is required.").optional().or(z.literal("")),
   email: z.string().trim().email().optional().or(z.literal("")),
   message: z.string().trim().optional(),
   notes: z.string().trim().optional(),
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!patientPhone) {
+    if (patientPhone && patientPhone.length < 7) {
       return NextResponse.json(
         {
           success: false,

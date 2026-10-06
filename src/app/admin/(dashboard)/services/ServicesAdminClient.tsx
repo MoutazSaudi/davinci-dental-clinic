@@ -35,10 +35,15 @@ export default function ServicesAdminClient({ initial }: { initial: ServiceItem[
   const [items, setItems] = useState<ServiceItem[]>(initial || []);
   const [selected, setSelected] = useState<ServiceItem | null>(null);
   const [open, setOpen] = useState(false);
+  const [pendingImage, setPendingImage] = useState("");
 
   useEffect(() => {
     setItems(initial || []);
   }, [initial]);
+
+  useEffect(() => {
+    setPendingImage(selected?.image || "");
+  }, [selected, open]);
 
   async function refresh() {
     const res = await fetch("/api/admin/services");
@@ -46,25 +51,47 @@ export default function ServicesAdminClient({ initial }: { initial: ServiceItem[
     setItems(data || []);
   }
 
+  async function uploadImage(file: File | null) {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      alert("Image upload failed");
+      return;
+    }
+
+    const data = await res.json();
+    setPendingImage(data.url || "");
+  }
+
   async function handleCreate(data: ServiceFormValues) {
     await fetch("/api/admin/services", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, image: pendingImage || data.image }),
       headers: { "Content-Type": "application/json" },
     });
     setOpen(false);
     setSelected(null);
+    setPendingImage("");
     await refresh();
   }
 
   async function handleUpdate(data: ServiceFormValues) {
     await fetch(`/api/admin/services?slug=${encodeURIComponent(selected?.slug || "")}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, image: pendingImage || data.image }),
       headers: { "Content-Type": "application/json" },
     });
     setSelected(null);
     setOpen(false);
+    setPendingImage("");
     await refresh();
   }
 
@@ -159,8 +186,22 @@ export default function ServicesAdminClient({ initial }: { initial: ServiceItem[
         onClose={() => {
           setOpen(false);
           setSelected(null);
+          setPendingImage("");
         }}
       >
+        <div className="space-y-4 mb-4">
+          <label className="block font-medium text-sm text-gray-700">Upload image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => uploadImage(event.target.files?.[0] ?? null)}
+            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700"
+          />
+          {pendingImage && (
+            <img src={pendingImage} alt="Selected service" className="h-24 w-32 object-cover rounded-lg border" />
+          )}
+        </div>
+
         <DynamicForm<ServiceFormValues>
           schema={serviceSchema}
           fields={serviceFields}

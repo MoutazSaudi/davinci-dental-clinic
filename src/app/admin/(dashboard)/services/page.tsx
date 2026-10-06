@@ -1,13 +1,15 @@
+export const dynamic = "force-dynamic";
+
 import React from "react";
-import { listServices } from "@/lib/services/admin/servicesMock";
+import { requireAdminServer } from "@/lib/auth";
 import ServicesAdminClient from "./ServicesAdminClient";
 
 export default async function ServicesPage() {
-  const initial = await listServices();
+  await requireAdminServer();
 
   return (
     <div className="container mx-auto">
-      <ServicesAdminClient initial={initial} />
+      <ServicesAdminClient initial={[]} />
     </div>
   );
 }

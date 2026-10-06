@@ -116,3 +116,7 @@ export async function requireAdminApi(): Promise<AdminSession | NextResponse> {
   }
   return session;
 }
+
+export async function requireAdminFromRequest(): Promise<AdminSession | NextResponse> {
+  return requireAdminApi();
+}
