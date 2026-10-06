@@ -4,7 +4,7 @@
  */
 
 export const siteConfig = {
-  baseUrl: "https://saudidental.sy",
+  baseUrl: "https://davincidental.org",
   siteName: { ar: "دافينشي لطب الأسنان", en: "Davinci Dental Clinic" },
   defaultTitle: {
     ar: "دافينشي لطب الأسنان — دمشق وأبوظبي",

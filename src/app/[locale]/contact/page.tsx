@@ -10,7 +10,7 @@ import { getMessages, locales, type Locale } from "@/lib/i18n";
 
 const WHATSAPP_NUMBER = "971555449975";
 const MAP_EMBED_SRC =
-  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d8298.26066247907!2d36.29726462398486!3d33.52130334388944!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1518e73a684378c9%3A0x3224c91b3bccc9f6!2z2KfZhNi02YfYr9in2KHYjCDYr9mF2LTZgtiMINiz2YjYsdmK2Kc!5e1!3m2!1sar!2snl!4v1790170800084!5m2!1sar!2snl";
+  "https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3326.126906047234!2d36.29447268479874!3d33.524085980752886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzPCsDMxJzI2LjciTiAzNsKwMTcnMzIuMiJF!5e0!3m2!1sar!2snl!4v1791278526842!5m2!1sar!2snl";
 const OG_IMAGE = "/images/doctors/DrMuhanad.jpeg";
 
 export async function generateMetadata({

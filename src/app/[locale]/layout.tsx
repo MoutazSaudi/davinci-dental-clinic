@@ -40,23 +40,23 @@ export default async function LocaleLayout({
   const messages = getMessages(safeLocale);
 
   return (
-    <html lang={isArabic ? "ar" : "en"} dir={isArabic ? "rtl" : "ltr"}>
-      <body
-        className={`${inter.variable} ${cairo.variable}`}
-        suppressHydrationWarning
-      >
-        <Header locale={safeLocale} nav={messages.nav} />
-        {children}
-        <Footer
-          locale={safeLocale}
-          footer={{
-            phone: clinicContactData.phone,
-            email: clinicContactData.email,
-            address: clinicContactData.address[safeLocale],
-          }}
-          nav={messages.nav}
-        />
-      </body>
-    </html>
+    <div
+      lang={isArabic ? "ar" : "en"}
+      dir={isArabic ? "rtl" : "ltr"}
+      className={`${inter.variable} ${cairo.variable} min-h-screen bg-[#f6f9f8] text-[#172b36]`}
+      suppressHydrationWarning
+    >
+      <Header locale={safeLocale} nav={messages.nav} />
+      {children}
+      <Footer
+        locale={safeLocale}
+        footer={{
+          phone: clinicContactData.phone,
+          email: clinicContactData.email,
+          address: clinicContactData.address[safeLocale],
+        }}
+        nav={messages.nav}
+      />
+    </div>
   );
 }

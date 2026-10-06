@@ -148,7 +148,6 @@ export default async function ServicesPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <Header locale={safeLocale as Locale} nav={messages.nav} />
 
       <div className="pt-28">
         <Breadcrumbs
@@ -185,15 +184,7 @@ export default async function ServicesPage({
         </Suspense>
       </div>
 
-      <Footer
-        locale={safeLocale as Locale}
-        footer={{
-          phone: clinicContactData.phone,
-          email: clinicContactData.email,
-          address: clinicContactData.address[safeLocale as "en" | "ar"],
-        }}
-        nav={messages.nav}
-      />
+
     </main>
   );
 }
