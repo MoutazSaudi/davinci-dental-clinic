@@ -4,8 +4,17 @@ export const revalidate = 0;
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth";
+
+// تعريف نوع الخدمة مع العلاقات لضمان توافق TypeScript
+type ServiceWithRelations = Prisma.ServiceGetPayload<{
+  include: {
+    category: { include: { translations: true } };
+    translations: true;
+  };
+}>;
 
 const localeTextSchema = z.object({
   en: z.string().trim().optional(),
@@ -25,10 +34,12 @@ const servicePayloadSchema = z.object({
   }),
   shortDescription: localeTextSchema.optional(),
   description: localeTextSchema.optional(),
-  highlight: z.object({
-    en: z.array(z.string()).optional(),
-    ar: z.array(z.string()).optional(),
-  }).optional(),
+  highlight: z
+    .object({
+      en: z.array(z.string()).optional(),
+      ar: z.array(z.string()).optional(),
+    })
+    .optional(),
   sourceUrl: z.string().trim().optional(),
   sourceUrlEn: z.string().trim().optional(),
 });
@@ -42,11 +53,15 @@ const slugify = (value: string) =>
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "") || "service";
 
-const getLocaleText = <T extends { locale: string; name?: string }>(items: T[], locale: string) =>
-  items.find((entry) => entry.locale === locale)?.name ?? items[0]?.name ?? "";
+const getLocaleText = <T extends { locale: string; name?: string }>(
+  items: T[],
+  locale: string
+) => items.find((entry) => entry.locale === locale)?.name ?? items[0]?.name ?? "";
 
-const getServiceTranslation = <T extends { locale: string }>(items: T[], locale: string) =>
-  items.find((entry) => entry.locale === locale) ?? items[0] ?? null;
+const getServiceTranslation = <T extends { locale: string }>(
+  items: T[],
+  locale: string
+) => items.find((entry) => entry.locale === locale) ?? items[0] ?? null;
 
 const serializeService = (service: {
   slug: string;
@@ -65,12 +80,27 @@ const serializeService = (service: {
   const categoryEn = getLocaleText(service.category.translations, "en");
   const categoryAr = getLocaleText(service.category.translations, "ar");
 
-  const enTranslation = getServiceTranslation(service.translations, "en") as
-    | { locale: string; title: string; shortDescription: string | null; description: string | null; highlights: string[] }
-    | null;
-  const arTranslation = getServiceTranslation(service.translations, "ar") as
-    | { locale: string; title: string; shortDescription: string | null; description: string | null; highlights: string[] }
-    | null;
+  const enTranslation = getServiceTranslation(
+    service.translations,
+    "en"
+  ) as {
+    locale: string;
+    title: string;
+    shortDescription: string | null;
+    description: string | null;
+    highlights: string[];
+  } | null;
+
+  const arTranslation = getServiceTranslation(
+    service.translations,
+    "ar"
+  ) as {
+    locale: string;
+    title: string;
+    shortDescription: string | null;
+    description: string | null;
+    highlights: string[];
+  } | null;
 
   return {
     slug: service.slug,
@@ -112,7 +142,9 @@ async function ensureCategory(categoryName: string, localeName?: string) {
       translations: {
         create: [
           { locale: "en", name: safeName },
-          ...(localeName && localeName.trim() ? [{ locale: "ar", name: localeName.trim() }] : []),
+          ...(localeName && localeName.trim()
+            ? [{ locale: "ar", name: localeName.trim() }]
+            : []),
         ],
       },
     },
@@ -121,14 +153,22 @@ async function ensureCategory(categoryName: string, localeName?: string) {
 
   const texts = [
     { locale: "en", name: safeName },
-    ...(localeName && localeName.trim() ? [{ locale: "ar", name: localeName.trim() }] : []),
+    ...(localeName && localeName.trim()
+      ? [{ locale: "ar", name: localeName.trim() }]
+      : []),
   ];
 
   for (const text of texts) {
     await prisma.serviceCategoryTranslation.upsert({
-      where: { categoryId_locale: { categoryId: category.id, locale: text.locale } },
+      where: {
+        categoryId_locale: { categoryId: category.id, locale: text.locale },
+      },
       update: { name: text.name },
-      create: { categoryId: category.id, locale: text.locale, name: text.name },
+      create: {
+        categoryId: category.id,
+        locale: text.locale,
+        name: text.name,
+      },
     });
   }
 
@@ -157,16 +197,21 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const payload = servicePayloadSchema.parse(body);
-    const category = await ensureCategory(payload.category.en, payload.category.ar);
+    const category = await ensureCategory(
+      payload.category.en,
+      payload.category.ar
+    );
     const titleEn = payload.title.en.trim();
     const titleAr = payload.title.ar?.trim() || titleEn;
     const descriptionEn = payload.description?.en?.trim() ?? titleEn;
     const descriptionAr = payload.description?.ar?.trim() ?? titleAr;
-    const shortDescriptionEn = payload.shortDescription?.en?.trim() ?? descriptionEn;
-    const shortDescriptionAr = payload.shortDescription?.ar?.trim() ?? descriptionAr;
+    const shortDescriptionEn =
+      payload.shortDescription?.en?.trim() ?? descriptionEn;
+    const shortDescriptionAr =
+      payload.shortDescription?.ar?.trim() ?? descriptionAr;
     const slug = payload.slug.trim() || slugify(titleEn);
 
-    const service = await prisma.service.create({
+    const service: ServiceWithRelations = await prisma.service.create({
       data: {
         slug,
         categoryId: category.id,
@@ -181,15 +226,26 @@ export async function POST(req: Request) {
               shortDescription: shortDescriptionEn,
               description: descriptionEn,
               highlights: payload.highlight?.en ?? [],
-              rich: payload.highlight ? { en: payload.highlight.en ?? [], ar: payload.highlight.ar ?? [] } : null,
+              rich: payload.highlight
+                ? {
+                    en: payload.highlight.en ?? [],
+                    ar: payload.highlight.ar ?? [],
+                  }
+                : Prisma.DbNull,
             },
             {
               locale: "ar",
               title: titleAr,
               shortDescription: shortDescriptionAr,
               description: descriptionAr,
-              highlights: payload.highlight?.ar ?? payload.highlight?.en ?? [],
-              rich: payload.highlight ? { en: payload.highlight.en ?? [], ar: payload.highlight.ar ?? [] } : null,
+              highlights:
+                payload.highlight?.ar ?? payload.highlight?.en ?? [],
+              rich: payload.highlight
+                ? {
+                    en: payload.highlight.en ?? [],
+                    ar: payload.highlight.ar ?? [],
+                  }
+                : Prisma.DbNull,
             },
           ],
         },
@@ -205,10 +261,16 @@ export async function POST(req: Request) {
     return NextResponse.json(serializeService(service), { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json(
+        { error: error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ error: "Unable to create service" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to create service" },
+      { status: 500 }
+    );
   }
 }
 
@@ -223,19 +285,43 @@ export async function PUT(req: Request) {
   try {
     const url = new URL(req.url);
     const slug = url.searchParams.get("slug");
-    if (!slug) return NextResponse.json({ error: "Missing service slug" }, { status: 400 });
+    if (!slug)
+      return NextResponse.json(
+        { error: "Missing service slug" },
+        { status: 400 }
+      );
+
+    // جلب الخدمة أولاً للتأكد من وجودها والحصول على المعرف
+    const existingService = await prisma.service.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (!existingService) {
+      return NextResponse.json(
+        { error: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    const serviceId = existingService.id;
 
     const body = await req.json();
     const payload = servicePayloadSchema.parse(body);
-    const category = await ensureCategory(payload.category.en, payload.category.ar);
+    const category = await ensureCategory(
+      payload.category.en,
+      payload.category.ar
+    );
     const titleEn = payload.title.en.trim();
     const titleAr = payload.title.ar?.trim() || titleEn;
     const descriptionEn = payload.description?.en?.trim() ?? titleEn;
     const descriptionAr = payload.description?.ar?.trim() ?? titleAr;
-    const shortDescriptionEn = payload.shortDescription?.en?.trim() ?? descriptionEn;
-    const shortDescriptionAr = payload.shortDescription?.ar?.trim() ?? descriptionAr;
+    const shortDescriptionEn =
+      payload.shortDescription?.en?.trim() ?? descriptionEn;
+    const shortDescriptionAr =
+      payload.shortDescription?.ar?.trim() ?? descriptionAr;
 
-    const service = await prisma.service.update({
+    const service: ServiceWithRelations = await prisma.service.update({
       where: { slug },
       data: {
         categoryId: category.id,
@@ -246,13 +332,20 @@ export async function PUT(req: Request) {
         translations: {
           upsert: [
             {
-              where: { serviceId_locale: { serviceId: (await prisma.service.findUnique({ where: { slug }, select: { id: true } }))?.id ?? "", locale: "en" } },
+              where: {
+                serviceId_locale: { serviceId, locale: "en" },
+              },
               update: {
                 title: titleEn,
                 shortDescription: shortDescriptionEn,
                 description: descriptionEn,
                 highlights: payload.highlight?.en ?? [],
-                rich: payload.highlight ? { en: payload.highlight.en ?? [], ar: payload.highlight.ar ?? [] } : null,
+                rich: payload.highlight
+                  ? {
+                      en: payload.highlight.en ?? [],
+                      ar: payload.highlight.ar ?? [],
+                    }
+                  : Prisma.DbNull,
               },
               create: {
                 locale: "en",
@@ -260,25 +353,44 @@ export async function PUT(req: Request) {
                 shortDescription: shortDescriptionEn,
                 description: descriptionEn,
                 highlights: payload.highlight?.en ?? [],
-                rich: payload.highlight ? { en: payload.highlight.en ?? [], ar: payload.highlight.ar ?? [] } : null,
+                rich: payload.highlight
+                  ? {
+                      en: payload.highlight.en ?? [],
+                      ar: payload.highlight.ar ?? [],
+                    }
+                  : Prisma.DbNull,
               },
             },
             {
-              where: { serviceId_locale: { serviceId: (await prisma.service.findUnique({ where: { slug }, select: { id: true } }))?.id ?? "", locale: "ar" } },
+              where: {
+                serviceId_locale: { serviceId, locale: "ar" },
+              },
               update: {
                 title: titleAr,
                 shortDescription: shortDescriptionAr,
                 description: descriptionAr,
-                highlights: payload.highlight?.ar ?? payload.highlight?.en ?? [],
-                rich: payload.highlight ? { en: payload.highlight.en ?? [], ar: payload.highlight.ar ?? [] } : null,
+                highlights:
+                  payload.highlight?.ar ?? payload.highlight?.en ?? [],
+                rich: payload.highlight
+                  ? {
+                      en: payload.highlight.en ?? [],
+                      ar: payload.highlight.ar ?? [],
+                    }
+                  : Prisma.DbNull,
               },
               create: {
                 locale: "ar",
                 title: titleAr,
                 shortDescription: shortDescriptionAr,
                 description: descriptionAr,
-                highlights: payload.highlight?.ar ?? payload.highlight?.en ?? [],
-                rich: payload.highlight ? { en: payload.highlight.en ?? [], ar: payload.highlight.ar ?? [] } : null,
+                highlights:
+                  payload.highlight?.ar ?? payload.highlight?.en ?? [],
+                rich: payload.highlight
+                  ? {
+                      en: payload.highlight.en ?? [],
+                      ar: payload.highlight.ar ?? [],
+                    }
+                  : Prisma.DbNull,
               },
             },
           ],
@@ -295,10 +407,16 @@ export async function PUT(req: Request) {
     return NextResponse.json(serializeService(service));
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json(
+        { error: error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ error: "Unable to update service" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to update service" },
+      { status: 500 }
+    );
   }
 }
 
@@ -307,7 +425,11 @@ export async function DELETE(req: Request) {
   if (auth instanceof NextResponse) return auth;
 
   const slug = new URL(req.url).searchParams.get("slug");
-  if (!slug) return NextResponse.json({ error: "Missing service slug" }, { status: 400 });
+  if (!slug)
+    return NextResponse.json(
+      { error: "Missing service slug" },
+      { status: 400 }
+    );
 
   await prisma.service.delete({ where: { slug } }).catch(() => null);
   revalidatePath("/services");
