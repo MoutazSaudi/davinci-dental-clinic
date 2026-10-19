@@ -2,19 +2,24 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
-import { Footer } from "@/components/website/Footer";
-import { Header } from "@/components/website/Header";
 import { PageHeader } from "@/components/website/PageHeader";
 import { ServicesGrid } from "@/components/website/ServicesGrid";
 import {
-  clinicContactData,
-  getAlternateUrl,
   getCategories,
   getCategorySlug,
   serviceCatalog,
-  siteConfig,
 } from "@/data/mock/services";
-import { getMessages, locales, type Locale } from "@/lib/i18n";
+import { locales, type Locale } from "@/lib/i18n";
+import {
+  buildMetadata,
+  buildPageJsonLd,
+  buildBreadcrumbSchema,
+  buildPageUrl,
+} from "@/data/seo";
+
+/* ═══════════════════════════════════════════════════
+   SEO — كل شيء من src/data/seo.ts
+   ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
   params,
@@ -23,74 +28,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const safeLocale = locale === "ar" ? "ar" : "en";
-  const isArabic = safeLocale === "ar";
-
-  const title = isArabic
-    ? `الخدمات | ${siteConfig.siteName.ar}`
-    : `Services | ${siteConfig.siteName.en}`;
-
-  const description = isArabic
-    ? "اكتشف مجموعة خدماتنا الشاملة في طب الأسنان، تقويم الأسنان، التجميل، والجراحة في دمشق."
-    : "Explore our comprehensive dental services including orthodontics, cosmetic dentistry, surgery, and more in Damascus.";
-
-  const path = "/services";
-  const alternates = getAlternateUrl(safeLocale as Locale, path);
-  const canonicalUrl = `${siteConfig.baseUrl}/${safeLocale}${path}`;
-  const ogImage = serviceCatalog[0]?.image ?? "/og-default.jpg";
-
-  return {
-    title,
-    description,
-    keywords: isArabic
-      ? [
-          "خدمات أسنان",
-          "تقويم الأسنان",
-          "زراعة الأسنان",
-          "تجميل الأسنان",
-          "دمشق",
-        ]
-      : [
-          "dental services",
-          "orthodontics",
-          "dental implants",
-          "cosmetic dentistry",
-          "Damascus",
-        ],
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        [siteConfig.hreflang.ar]: alternates.ar,
-        [siteConfig.hreflang.en]: alternates.en,
-        "x-default": alternates.en,
-      },
-    },
-    openGraph: {
-      title,
-      description,
-      url: canonicalUrl,
-      siteName: siteConfig.siteName[safeLocale as Locale],
-      locale: siteConfig.ogLocale[safeLocale as Locale],
-      type: "website",
-      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImage],
-    },
-    other: {
-      "geo.region": siteConfig.geo.region,
-      "geo.placename": siteConfig.geo.placename[safeLocale as Locale],
-      "geo.position": siteConfig.geo.position,
-      ICBM: siteConfig.geo.ICBM,
-    },
-  };
+  return buildMetadata("services", safeLocale);
 }
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
+
+/* ═══════════════════════════════════════════════════
+   الصفحة
+   ═══════════════════════════════════════════════════ */
 
 export default async function ServicesPage({
   params,
@@ -104,7 +51,6 @@ export default async function ServicesPage({
     notFound();
   }
 
-  const messages = getMessages(safeLocale as Locale);
   const isArabic = safeLocale === "ar";
   const L = safeLocale as "ar" | "en";
 
@@ -123,37 +69,54 @@ export default async function ServicesPage({
     count: c.count,
   }));
 
-  const jsonLd = {
+  /* ═══════════════════════════════════════════════════
+     JSON-LD — Auto (Organization/WebSite/CollectionPage) + ItemList + Breadcrumb
+     ═══════════════════════════════════════════════════ */
+
+  const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: isArabic
-      ? "خدمات عيادة سعودي لطب الأسنان"
-      : "Saudi Dental Clinic Services",
+      ? "خدمات عيادة دافينشي لطب الأسنان"
+      : "Davinci Dental Clinic Services",
     numberOfItems: services.length,
     itemListElement: services.map((s, i) => ({
       "@type": "ListItem",
       position: i + 1,
       name: s.title,
-      url: `${siteConfig.baseUrl}/${safeLocale}/services/${s.slug}`,
+      url: buildPageUrl(safeLocale, `services/${s.slug}`),
     })),
   };
+
+  const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
+    { name: isArabic ? "الرئيسية" : "Home", path: "" },
+    { name: isArabic ? "الخدمات" : "Services", path: "services" },
+  ]);
+
+  const jsonLdBlocks = buildPageJsonLd("services", safeLocale, [
+    itemListLd,
+    breadcrumbLd,
+  ]);
 
   return (
     <main
       className="min-h-screen bg-background-soft text-foreground"
       dir={isArabic ? "rtl" : "ltr"}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
+      {jsonLdBlocks.map((block, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
+        />
+      ))}
 
       <div className="pt-28">
         <Breadcrumbs
           locale={safeLocale as Locale}
           items={[{ label: isArabic ? "الخدمات" : "Services" }]}
         />
+
         <PageHeader
           locale={safeLocale as Locale}
           eyebrow={isArabic ? "خدماتنا" : "Our services"}
@@ -183,8 +146,6 @@ export default async function ServicesPage({
           />
         </Suspense>
       </div>
-
-
     </main>
   );
 }

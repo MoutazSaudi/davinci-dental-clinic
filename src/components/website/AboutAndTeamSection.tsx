@@ -71,10 +71,10 @@ export function AboutAndTeamSection({
   };
 
   const lead = {
-    name: isArabic ? "د. مهند سعودي" : "Dr. Muhanad Saudi",
+    name: isArabic ? "د. مهند سعودي" : "Dr. Mouhannad Saudi",
     title: isArabic
-      ? "استشاري آلام الوجه والمفصل الفكي الصدغي"
-      : "Orofacial Pain & TMJ Specialist",
+      ? "أخصائي تقويم الأسنان، وأخصائي آلام الوجه والفكين والمفصل الفكي الصدغي"
+      : "Orthodontist and  Orofacial pain & TMJ specialist",
     bio: isArabic
       ? "حصل على شهادة الاختصاص في آلام الوجه والمفصل الفكي الصدغي من جامعة جنوب كاليفورنيا (USC)، الولايات المتحدة. يهتم هذا التخصص بالآلام العصبية والعضلية في منطقة الوجه، والمفصل الفكي الصدغي، والصداع، وآلام الأذن، ومشاكل توقف التنفس أثناء النوم."
       : "Received a specialized diploma in Orofacial Pain and TMJ from the University of Southern California (USC), USA. This specialty focuses on neuromuscular pain in the facial region, TMJ disorders, headaches, ear pain, and sleep apnea.",

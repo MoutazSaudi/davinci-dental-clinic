@@ -58,6 +58,10 @@ export function Header({ locale, nav }: HeaderProps) {
     //   href: `/${locale}/blog`,
     // },
     {
+      label: nav.prices || (locale === "ar" ? "الأسعار" : "Prices"),
+      href: `/${locale}#pricing`,
+    },
+    {
       label: nav.contact || (locale === "ar" ? "تواصل معنا" : "Contact"),
       href: `/${locale}/contact`,
     },

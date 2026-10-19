@@ -2,16 +2,33 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
 import { ContactForm } from "@/components/website/ContactForm";
-import { Footer } from "@/components/website/Footer";
-import { Header } from "@/components/website/Header";
 import { PageHeader } from "@/components/website/PageHeader";
-import { getAlternateUrl, clinicContactData, siteConfig } from "@/data/site";
-import { getMessages, locales, type Locale } from "@/lib/i18n";
+import { clinicContactData } from "@/data/site";
+import { locales, type Locale } from "@/lib/i18n";
+import {
+  buildMetadata,
+  buildPageJsonLd,
+  buildBreadcrumbSchema,
+  seoDefaults,
+  geoData,
+} from "@/data/seo";
 
-const WHATSAPP_NUMBER = "971555449975";
+/* ═══════════════════════════════════════════════════
+   Derived numbers — single source of truth: seo.ts
+   ═══════════════════════════════════════════════════ */
+
+// wa.me requires digits only (no +, no spaces) — 963980677113
+const WHATSAPP_NUMBER = seoDefaults.whatsappNumber;
+
+// tel: accepts the leading + — +963980677113
+const CALL_NUMBER = seoDefaults.callNumber;
+
 const MAP_EMBED_SRC =
   "https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3326.126906047234!2d36.29447268479874!3d33.524085980752886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzPCsDMxJzI2LjciTiAzNsKwMTcnMzIuMiJF!5e0!3m2!1sar!2snl!4v1791278526842!5m2!1sar!2snl";
-const OG_IMAGE = "/images/doctors/DrMuhanad.jpeg";
+
+/* ═══════════════════════════════════════════════════
+   SEO — كل شيء من src/data/seo.ts
+   ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
   params,
@@ -20,89 +37,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const safeLocale = locale === "ar" ? "ar" : "en";
-  const isArabic = safeLocale === "ar";
-
-  const title = isArabic
-    ? `تواصل معنا | ${siteConfig.siteName.ar} — دمشق`
-    : `Contact Us | ${siteConfig.siteName.en} — Damascus`;
-
-  const description = isArabic
-    ? "تواصل مع دافينشي لطب الأسنان عبر واتساب، الهاتف، البريد الإلكتروني، أو نموذج مباشر. عيادتنا في المزرعة، دمشق، سوريا."
-    : "Contact Davinci Dental Clinic via WhatsApp, phone, email, or direct form. Our clinic is in Al-Mazraa, Damascus, Syria.";
-
-  const path = "/contact";
-  const alternates = getAlternateUrl(safeLocale as Locale, path);
-  const canonicalUrl = `${siteConfig.baseUrl}/${safeLocale}${path}`;
-  const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
-
-  return {
-    title,
-    description,
-    keywords: isArabic
-      ? [
-          "تواصل عيادة أسنان",
-          "حجز موعد أسنان دمشق",
-          "واتساب عيادة أسنان",
-          "رقم عيادة دافينشي",
-          "عيادة أسنان المزرعة",
-          "تواصل دافينشي دمشق",
-        ]
-      : [
-          "dental clinic contact",
-          "book dental appointment Damascus",
-          "dental clinic WhatsApp",
-          "Davinci Dental Clinic phone",
-          "dental clinic Al-Mazraa",
-          "contact Davinci Damascus",
-        ],
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        [siteConfig.hreflang.ar]: alternates.ar,
-        [siteConfig.hreflang.en]: alternates.en,
-        "x-default": alternates.en,
-      },
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
-    openGraph: {
-      type: "website",
-      title,
-      description,
-      url: canonicalUrl,
-      siteName: siteConfig.siteName[safeLocale as Locale],
-      locale: siteConfig.ogLocale[safeLocale as Locale],
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImageUrl],
-    },
-    other: {
-      "geo.region": siteConfig.geo.region,
-      "geo.placename": siteConfig.geo.placename[safeLocale as Locale],
-      "geo.position": siteConfig.geo.position,
-      ICBM: siteConfig.geo.ICBM,
-    },
-  };
+  return buildMetadata("contact", safeLocale);
 }
 
 export function generateStaticParams() {
@@ -121,148 +56,29 @@ export default async function ContactPage({
     notFound();
   }
 
-  const messages = getMessages(safeLocale as Locale);
   const isArabic = safeLocale === "ar";
   const L = safeLocale as "ar" | "en";
 
-  const pageUrl = `${siteConfig.baseUrl}/${safeLocale}/contact`;
-  const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
-  const logoUrl = `${siteConfig.baseUrl}/logo.png`;
-
   /* ═══════════════════════════════════════════════════
-     JSON-LD Blocks
+     JSON-LD — Auto (Organization/WebSite/ContactPage) + Breadcrumb
      ═══════════════════════════════════════════════════ */
 
-  // 1) ContactPage
-  const contactPageLd = {
-    "@context": "https://schema.org",
-    "@type": "ContactPage",
-    "@id": `${pageUrl}/#webpage`,
-    url: pageUrl,
-    name: isArabic
-      ? "تواصل معنا | دافينشي لطب الأسنان"
-      : "Contact Us | Davinci Dental Clinic",
-    description: isArabic
-      ? "تواصل مع دافينشي لطب الأسنان — دمشق، سوريا."
-      : "Contact Davinci Dental Clinic — Damascus, Syria.",
-    inLanguage: isArabic ? "ar-SY" : "en-US",
-    isPartOf: {
-      "@id": `${siteConfig.baseUrl}/#website`,
-    },
-    primaryImageOfPage: {
-      "@type": "ImageObject",
-      url: ogImageUrl,
-      width: 1200,
-      height: 630,
-    },
-  };
+  const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
+    { name: isArabic ? "الرئيسية" : "Home", path: "" },
+    { name: isArabic ? "تواصل معنا" : "Contact", path: "contact" },
+  ]);
 
-  // 2) BreadcrumbList
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: isArabic ? "الرئيسية" : "Home",
-        item: `${siteConfig.baseUrl}/${safeLocale}`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: isArabic ? "تواصل معنا" : "Contact",
-        item: pageUrl,
-      },
-    ],
-  };
-
-  // 3) MedicalClinic / LocalBusiness with full contact details
-  const clinicLd = {
-    "@context": "https://schema.org",
-    "@type": ["Dentist", "MedicalClinic", "LocalBusiness"],
-    "@id": `${siteConfig.baseUrl}/#organization`,
-    name: siteConfig.siteName[L],
-    alternateName: isArabic
-      ? "Davinci Dental Clinic"
-      : "دافينشي لطب الأسنان",
-    description: isArabic
-      ? "عيادة متخصصة في طب الأسنان وتقويم الأسنان في دمشق."
-      : "A dental clinic specialized in dentistry and orthodontics in Damascus.",
-    url: siteConfig.baseUrl,
-    logo: logoUrl,
-    image: [ogImageUrl],
-    telephone: "+971555449975",
-    email: clinicContactData.email,
-    priceRange: "$$",
-    currenciesAccepted: "USD, AED, SYP",
-    paymentAccepted: "Cash, Credit Card, Bank Transfer",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: isArabic ? "المزرعة" : "Al-Mazraa",
-      addressLocality: isArabic ? "دمشق" : "Damascus",
-      addressCountry: "SY",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 33.5213033,
-      longitude: 36.2972646,
-    },
-    hasMap: "https://maps.google.com/?q=Al-Mazraa+Damascus+Syria",
-    sameAs: [
-      clinicContactData.social.facebook,
-      clinicContactData.social.instagram,
-    ],
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Saturday",
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-        ],
-        opens: "10:00",
-        closes: "20:00",
-      },
-    ],
-    contactPoint: [
-      {
-        "@type": "ContactPoint",
-        telephone: "+971555449975",
-        contactType: isArabic ? "خدمة العملاء" : "customer service",
-        availableLanguage: ["ar", "en"],
-        areaServed: ["SY", "AE"],
-      },
-    ],
-  };
-
-  // 4) Website (links the org)
-  const websiteLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${siteConfig.baseUrl}/#website`,
-    url: siteConfig.baseUrl,
-    name: siteConfig.siteName[L],
-    inLanguage: isArabic ? "ar-SY" : "en-US",
-    publisher: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
-    },
-  };
-
-  const jsonLdBlocks = [contactPageLd, breadcrumbLd, clinicLd, websiteLd];
+  const jsonLdBlocks = buildPageJsonLd("contact", safeLocale, [breadcrumbLd]);
 
   /* ═══════════════════════════════════════════════════
-     Info Cards
+     Info Cards — كل القيم من clinicContactData
      ═══════════════════════════════════════════════════ */
 
   const infoCards = [
     {
       key: "whatsapp",
       title: isArabic ? "واتساب" : "WhatsApp",
-      value: "+971 55 544 9975",
+      value: clinicContactData.whatsapp,
       href: `https://wa.me/${WHATSAPP_NUMBER}`,
       external: true,
       icon: (
@@ -279,8 +95,8 @@ export default async function ContactPage({
     {
       key: "call",
       title: isArabic ? "اتصال" : "Call",
-      value: "+971 55 544 9975",
-      href: "tel:+971555449975",
+      value: clinicContactData.call,
+      href: `tel:${CALL_NUMBER}`,
       external: false,
       icon: (
         <svg
@@ -326,7 +142,7 @@ export default async function ContactPage({
       key: "address",
       title: isArabic ? "العنوان" : "Address",
       value: clinicContactData.address[L],
-      href: "https://maps.google.com/?q=Al-Mazraa+Damascus+Syria",
+      href: geoData.mapsUrl,
       external: true,
       icon: (
         <svg
@@ -364,7 +180,6 @@ export default async function ContactPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
         />
       ))}
-
 
       <div className="pt-28">
         <Breadcrumbs
@@ -466,7 +281,7 @@ export default async function ContactPage({
               </div>
 
               <a
-                href="https://maps.google.com/?q=Al-Mazraa+Damascus+Syria"
+                href={geoData.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group/btn mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-background-soft"
@@ -616,7 +431,6 @@ export default async function ContactPage({
           </div>
         </section>
       </div>
-
     </main>
   );
 }

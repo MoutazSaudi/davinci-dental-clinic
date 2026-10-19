@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
-import { Footer } from "@/components/website/Footer";
-import { Header } from "@/components/website/Header";
 import { PageHeader } from "@/components/website/PageHeader";
 import { GalleryGrid } from "@/components/website/GalleryGrid";
-import { clinicContactData } from "@/data/mock/services";
 import { galleryServices } from "@/data/mock/gallery";
-import { getMessages, locales, type Locale } from "@/lib/i18n";
+import { locales, type Locale } from "@/lib/i18n";
+import {
+  buildMetadata,
+  buildPageJsonLd,
+  buildBreadcrumbSchema,
+} from "@/data/seo";
+
+/* ═══════════════════════════════════════════════════
+   SEO — كل شيء من src/data/seo.ts
+   ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
   params,
@@ -16,30 +22,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const safeLocale = locale === "ar" ? "ar" : "en";
-  const isArabic = safeLocale === "ar";
-
-  return {
-    title: isArabic ? "المعرض | عيادة دمشق" : "Gallery | Damascus Dental Clinic",
-    description: isArabic
-      ? "تصفح أمثلة على نتائج علاجات التقويم والابتسامة في العيادة."
-      : "Explore representative orthodontic and smile treatment results.",
-    alternates: {
-      languages: { en: "/en/gallery", ar: "/ar/gallery" },
-    },
-    openGraph: {
-      title: isArabic ? "المعرض" : "Gallery",
-      description: isArabic
-        ? "أمثلة على العلاجات التقويمية والتجميلية."
-        : "Representative orthodontic and cosmetic treatment examples.",
-      url: `/${safeLocale}/gallery`,
-      type: "website",
-    },
-  };
+  return buildMetadata("gallery", safeLocale);
 }
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
+
+/* ═══════════════════════════════════════════════════
+   الصفحة
+   ═══════════════════════════════════════════════════ */
 
 export default async function GalleryPage({
   params,
@@ -53,20 +45,38 @@ export default async function GalleryPage({
     notFound();
   }
 
-  const messages = getMessages(safeLocale as Locale);
   const isArabic = safeLocale === "ar";
+
+  /* ═══════════════════════════════════════════════════
+     JSON-LD — Auto (Organization/WebSite/CollectionPage) + Breadcrumb
+     ═══════════════════════════════════════════════════ */
+
+  const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
+    { name: isArabic ? "الرئيسية" : "Home", path: "" },
+    { name: isArabic ? "المعرض" : "Gallery", path: "gallery" },
+  ]);
+
+  const jsonLdBlocks = buildPageJsonLd("gallery", safeLocale, [breadcrumbLd]);
 
   return (
     <main
       className="min-h-screen bg-[#f6f9f8] text-[#172b36]"
       dir={isArabic ? "rtl" : "ltr"}
     >
- 
+      {jsonLdBlocks.map((block, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
+        />
+      ))}
+
       <div className="pt-28">
         <Breadcrumbs
           locale={safeLocale as Locale}
           items={[{ label: isArabic ? "المعرض" : "Gallery" }]}
         />
+
         <PageHeader
           locale={safeLocale as Locale}
           eyebrow={isArabic ? "المعرض" : "Gallery"}
@@ -89,8 +99,6 @@ export default async function GalleryPage({
           />
         </section>
       </div>
-
- 
     </main>
   );
 }

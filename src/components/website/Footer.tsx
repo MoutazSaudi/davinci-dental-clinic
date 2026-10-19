@@ -103,11 +103,12 @@ export function Footer({ locale, footer, nav }: FooterProps) {
             <ul className="mt-5 space-y-3 text-sm text-white/85">
               <li>
                 <a
-                  href="tel:+971555449975"
+                  href="tel:+963980677113
+"
                   className="transition-colors hover:text-gold"
                   dir="ltr"
                 >
-                  +971 55 544 9975
+                  +963 980 677 113
                 </a>
               </li>
               <li>

@@ -1,54 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 type WhatsAppFloatProps = {
   locale: "ar" | "en";
-  /** International format without + or spaces. Example: "971555449975" */
   phone: string;
 };
 
-type Country = "SY" | "AE" | "OTHER";
-
-function getMessage(locale: "ar" | "en", country: Country): string {
+export function WhatsAppFloat({ locale, phone }: WhatsAppFloatProps) {
   const isArabic = locale === "ar";
 
-  if (country === "SY") {
-    return isArabic
-      ? "مرحباً، أنا من سوريا وأرغب بالاستفسار عن خدمات عيادة دافينشي في دمشق."
-      : "Hello, I'm contacting from Syria and would like to inquire about Davinci Dental Clinic's services in Damascus.";
-  }
-
-  if (country === "AE") {
-    return isArabic
-      ? "مرحباً، أنا من الإمارات وأرغب بالاستفسار عن خدمات عيادة دافنشي في أبوظبي."
-      : "Hello, I'm contacting from the UAE and would like to inquire about Davinci Dental Clinic's services in Abu Dhabi.";
-  }
-
-  return isArabic
+  const message = isArabic
     ? "مرحباً، أرغب بالاستفسار عن خدمات عيادة دافنشي."
     : "Hello, I would like to inquire about Davinci Dental Clinic's services.";
-}
 
-function readCountryFromCookie(): Country {
-  if (typeof document === "undefined") return "OTHER";
-  const match = document.cookie.match(/(?:^|;\s*)user-country=([^;]+)/);
-  const value = match?.[1]?.toUpperCase();
-  if (value === "SY" || value === "AE") return value;
-  return "OTHER";
-}
-
-export function WhatsAppFloat({ locale, phone }: WhatsAppFloatProps) {
-  const [country, setCountry] = useState<Country>("OTHER");
-
-  useEffect(() => {
-    setCountry(readCountryFromCookie());
-  }, []);
-
-  const message = getMessage(locale, country);
   const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-  const isArabic = locale === "ar";
 
   return (
     <motion.a
@@ -61,7 +27,7 @@ export function WhatsAppFloat({ locale, phone }: WhatsAppFloatProps) {
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
-       {/* Wave ring 1 */}
+      {/* Wave ring 1 */}
       <motion.span
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 rounded-full bg-[#25D366]"
@@ -78,7 +44,6 @@ export function WhatsAppFloat({ locale, phone }: WhatsAppFloatProps) {
       />
 
       {/* Wave ring 2 — offset by 1.2s */}
-        
 
       {/* WhatsApp icon */}
       <svg

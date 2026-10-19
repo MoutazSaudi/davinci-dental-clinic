@@ -4,11 +4,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
 import { PageHeader } from "@/components/website/PageHeader";
-import { doctorCatalog } from "@/data/mock/doctors";
-import { clinicContactData, getAlternateUrl, siteConfig } from "@/data/site";
-import { getMessages, locales, type Locale } from "@/lib/i18n";
+import { clinicContactData, siteConfig } from "@/data/site";
+import { locales, type Locale } from "@/lib/i18n";
+import {
+  buildMetadata,
+  buildPageJsonLd,
+  buildBreadcrumbSchema,
+} from "@/data/seo";
 
 const OG_IMAGE = "/images/doctors/DrMuhanad.jpeg";
+
+/* ═══════════════════════════════════════════════════
+   SEO — كل شيء من src/data/seo.ts
+   ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
   params,
@@ -17,89 +25,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const safeLocale = locale === "ar" ? "ar" : "en";
-  const isArabic = safeLocale === "ar";
-
-  const title = isArabic
-    ? `الأطباء | ${siteConfig.siteName.ar} — د. مهند سعودي`
-    : `Doctors | ${siteConfig.siteName.en} — Dr. Muhanad Saudi`;
-
-  const description = isArabic
-    ? "د. مهند سعودي — استشاري آلام الوجه والمفصل الفكي الصدغي، حاصل على شهادة الاختصاص من جامعة جنوب كاليفورنيا (USC). متخصص في TMJ، الصداع، وآلام الأسنان."
-    : "Dr. Muhanad Saudi — Orofacial Pain & TMJ Specialist, with a diploma from the University of Southern California (USC). Specialized in TMJ, headaches, and dental pain.";
-
-  const path = "/doctors";
-  const alternates = getAlternateUrl(safeLocale as Locale, path);
-  const canonicalUrl = `${siteConfig.baseUrl}/${safeLocale}${path}`;
-  const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
-
-  return {
-    title,
-    description,
-    keywords: isArabic
-      ? [
-          "أطباء أسنان دمشق",
-          "د. مهند سعودي",
-          "استشاري TMJ",
-          "آلام الوجه",
-          "المفصل الفكي الصدغي",
-          "تقويم الأسنان",
-          "USC",
-        ]
-      : [
-          "dental doctors Damascus",
-          "Dr. Muhanad Saudi",
-          "TMJ specialist",
-          "orofacial pain",
-          "temporomandibular joint",
-          "orthodontics",
-          "USC",
-        ],
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        [siteConfig.hreflang.ar]: alternates.ar,
-        [siteConfig.hreflang.en]: alternates.en,
-        "x-default": alternates.en,
-      },
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
-    openGraph: {
-      type: "website",
-      title,
-      description,
-      url: canonicalUrl,
-      siteName: siteConfig.siteName[safeLocale as Locale],
-      locale: siteConfig.ogLocale[safeLocale as Locale],
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImageUrl],
-    },
-    other: {
-      "geo.region": siteConfig.geo.region,
-      "geo.placename": siteConfig.geo.placename[safeLocale as Locale],
-      "geo.position": siteConfig.geo.position,
-      ICBM: siteConfig.geo.ICBM,
-    },
-  };
+  return buildMetadata("doctors", safeLocale);
 }
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
+
+/* ═══════════════════════════════════════════════════
+   الصفحة
+   ═══════════════════════════════════════════════════ */
 
 export default async function DoctorsPage({
   params,
@@ -113,23 +48,18 @@ export default async function DoctorsPage({
     notFound();
   }
 
-  const messages = getMessages(safeLocale as Locale);
   const isArabic = safeLocale === "ar";
-  const L = safeLocale as "ar" | "en";
 
   const pageUrl = `${siteConfig.baseUrl}/${safeLocale}/doctors`;
   const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
-  const logoUrl = `${siteConfig.baseUrl}/logo.png`;
 
   /* ═══════════════════════════════════════════
      Doctor data
      ═══════════════════════════════════════════ */
-  const primaryDoctor = doctorCatalog[0];
-
-  const doctorName = isArabic ? "د. مهند سعودي" : "Dr. Muhanad Saudi";
+  const doctorName = isArabic ? "د. مهند سعودي" : "Dr. Mouhannad Saudi";
   const doctorTitle = isArabic
-    ? "استشاري آلام الوجه والمفصل الفكي الصدغي"
-    : "Orofacial Pain & TMJ Specialist";
+    ? "أخصائي تقويم الأسنان، وأخصائي آلام الوجه والفكين والمفصل الفكي الصدغي"
+    : "Orthodontist and  Orofacial pain & TMJ specialist";
   const doctorBio = isArabic
     ? "حصل على شهادة الاختصاص في آلام الوجه والمفصل الفكي الصدغي من جامعة جنوب كاليفورنيا (USC)، الولايات المتحدة. يهتم هذا التخصص بالآلام العصبية والعضلية في منطقة الوجه، والمفصل الفكي الصدغي، والصداع، وآلام الأذن، ومشاكل توقف التنفس أثناء النوم."
     : "Received a specialized diploma in Orofacial Pain and TMJ from the University of Southern California (USC), USA. This specialty focuses on neuromuscular pain in the facial region, TMJ disorders, headaches, ear pain, and sleep apnea.";
@@ -160,15 +90,16 @@ export default async function DoctorsPage({
       ];
 
   /* ═══════════════════════════════════════════
-     JSON-LD Blocks
+     JSON-LD
      ═══════════════════════════════════════════ */
 
+  // Physician schema — خاص بهذه الصفحة فقط
   const physicianLd = {
     "@context": "https://schema.org",
     "@type": "Physician",
     "@id": `${pageUrl}/#physician`,
     name: doctorName,
-    alternateName: isArabic ? "Dr. Muhanad Saudi" : "د. مهند سعودي",
+    alternateName: isArabic ? "Dr. Mouhannad Saudi" : "د. مهند سعودي",
     jobTitle: doctorTitle,
     description: doctorBio,
     image: ogImageUrl,
@@ -193,77 +124,17 @@ export default async function DoctorsPage({
     ],
   };
 
-  const clinicLd = {
-    "@context": "https://schema.org",
-    "@type": ["Dentist", "MedicalBusiness"],
-    "@id": `${siteConfig.baseUrl}/#organization`,
-    name: siteConfig.siteName[L],
-    url: siteConfig.baseUrl,
-    logo: logoUrl,
-    image: [ogImageUrl],
-    telephone: "+971555449975",
-    email: clinicContactData.email,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: isArabic ? "المزرعة" : "Al-Mazraa",
-      addressLocality: isArabic ? "دمشق" : "Damascus",
-      addressCountry: "SY",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 33.5213033,
-      longitude: 36.2972646,
-    },
-    employee: {
-      "@id": `${pageUrl}/#physician`,
-    },
-    sameAs: [
-      clinicContactData.social.facebook,
-      clinicContactData.social.instagram,
-    ],
-  };
+  // Breadcrumb schema — يُبنى من seo.ts
+  const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
+    { name: isArabic ? "الرئيسية" : "Home", path: "" },
+    { name: isArabic ? "الأطباء" : "Doctors", path: "doctors" },
+  ]);
 
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: isArabic ? "الرئيسية" : "Home",
-        item: `${siteConfig.baseUrl}/${safeLocale}`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: isArabic ? "الأطباء" : "Doctors",
-        item: pageUrl,
-      },
-    ],
-  };
-
-  const webPageLd = {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "@id": `${pageUrl}/#webpage`,
-    url: pageUrl,
-    name: isArabic
-      ? "الأطباء | دافينشي لطب الأسنان"
-      : "Doctors | Davinci Dental Clinic",
-    description: doctorBio,
-    inLanguage: isArabic ? "ar-SY" : "en-US",
-    isPartOf: {
-      "@id": `${siteConfig.baseUrl}/#website`,
-    },
-    primaryImageOfPage: {
-      "@type": "ImageObject",
-      url: ogImageUrl,
-      width: 1200,
-      height: 630,
-    },
-  };
-
-  const jsonLdBlocks = [physicianLd, clinicLd, breadcrumbLd, webPageLd];
+  /* Organization + WebSite + WebPage(doctors) + Physician + Breadcrumb */
+  const jsonLdBlocks = buildPageJsonLd("doctors", safeLocale, [
+    physicianLd,
+    breadcrumbLd,
+  ]);
 
   return (
     <main

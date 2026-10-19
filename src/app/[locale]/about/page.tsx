@@ -3,22 +3,29 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AboutAndTeamSection } from "@/components/website/AboutAndTeamSection";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
-import { Footer } from "@/components/website/Footer";
-import { Header } from "@/components/website/Header";
 import { PageHeader } from "@/components/website/PageHeader";
 import { TestimonialsAndFAQ } from "@/components/website/TestimonialsAndFAQ";
 import { doctorCatalog } from "@/data/mock/doctors";
 import { clinicValues } from "@/data/mock/services";
-import { clinicContactData, getAlternateUrl, siteConfig } from "@/data/site";
+import { clinicContactData, siteConfig } from "@/data/site";
 import { homeTestimonials } from "@/data/mock/testimonials";
-import { getMessages, locales, type Locale } from "@/lib/i18n";
+import { locales, type Locale } from "@/lib/i18n";
+import {
+  buildMetadata,
+  buildPageJsonLd,
+  buildBreadcrumbSchema,
+} from "@/data/seo";
 
-const OG_IMAGE = "/images/doctors/DrMuhanad.jpeg";
+/* ═══════════════════════════════════════════════════
+   Derived values — single source of truth: clinicContactData
+   ═══════════════════════════════════════════════════ */
 
-const SOCIAL_LINKS = [
-  "https://www.facebook.com/mouhannad.saoudi.2025",
-  "https://www.instagram.com/tmj.dr.mouhannad",
-];
+// tel: links keep the leading +, only strip whitespace
+const CALL_NUMBER = clinicContactData.call.replace(/\s/g, "");
+
+/* ═══════════════════════════════════════════════════
+   SEO — كل شيء من src/data/seo.ts
+   ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
   params,
@@ -27,98 +34,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const safeLocale = locale === "ar" ? "ar" : "en";
-  const isArabic = safeLocale === "ar";
-
-  const title = isArabic
-    ? "من نحن | دافينشي لطب الأسنان — دمشق وأبوظبي"
-    : "About Us | Davinci Dental Clinic — Damascus & Abu Dhabi";
-
-  const description = isArabic
-    ? "دافينشي لطب الأسنان — رعاية متخصصة في تقويم الأسنان وآلام الوجه والمفصل الفكي الصدغي. فرعان في دمشق وأبوظبي، بخبرة أكاديمية من جامعة USC."
-    : "Davinci Dental Clinic — specialized care in orthodontics, orofacial pain and TMJ. Two branches in Damascus and Abu Dhabi, with academic training from USC.";
-
-  const path = "/about";
-  const alternates = getAlternateUrl(safeLocale as Locale, path);
-  const canonicalUrl = `${siteConfig.baseUrl}/${safeLocale}${path}`;
-  const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
-
-  return {
-    title,
-    description,
-    keywords: isArabic
-      ? [
-          "عيادة أسنان دمشق",
-          "عيادة أسنان أبوظبي",
-          "دافينشي لطب الأسنان",
-          "تقويم الأسنان",
-          "آلام الوجه",
-          "المفصل الفكي الصدغي",
-          "طب الأسنان في سوريا",
-          "طب الأسنان في الإمارات",
-        ]
-      : [
-          "dental clinic Damascus",
-          "dental clinic Abu Dhabi",
-          "Davinci Dental Clinic",
-          "orthodontics",
-          "orofacial pain",
-          "TMJ treatment",
-          "dentistry in Syria",
-          "dentistry in UAE",
-        ],
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        [siteConfig.hreflang.ar]: alternates.ar,
-        [siteConfig.hreflang.en]: alternates.en,
-        "x-default": alternates.en,
-      },
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
-    openGraph: {
-      type: "website",
-      title,
-      description,
-      url: canonicalUrl,
-      siteName: siteConfig.siteName[safeLocale as Locale],
-      locale: siteConfig.ogLocale[safeLocale as Locale],
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImageUrl],
-    },
-    other: {
-      "geo.region": siteConfig.geo.region,
-      "geo.placename": siteConfig.geo.placename[safeLocale as Locale],
-      "geo.position": siteConfig.geo.position,
-      ICBM: siteConfig.geo.ICBM,
-    },
-  };
+  return buildMetadata("about", safeLocale);
 }
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
+
+/* ═══════════════════════════════════════════════════
+   الصفحة
+   ═══════════════════════════════════════════════════ */
 
 export default async function AboutPage({
   params,
@@ -132,7 +57,6 @@ export default async function AboutPage({
     notFound();
   }
 
-  const messages = getMessages(safeLocale as Locale);
   const isArabic = safeLocale === "ar";
   const L = safeLocale as "ar" | "en";
 
@@ -172,156 +96,26 @@ export default async function AboutPage({
   };
 
   /* ═══════════════════════════════════════════════════
-     JSON-LD — Complete Structured Data
+     JSON-LD — Auto (Organization/WebSite/WebPage/FAQ) + Extras (branches/founder/rating/breadcrumb)
      ═══════════════════════════════════════════════════ */
 
-  const pageUrl = `${siteConfig.baseUrl}/${safeLocale}/about`;
-  const logoUrl = `${siteConfig.baseUrl}/logo.png`;
-  const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
-
-  // 1) Organization / MedicalBusiness (Main entity)
-  const medicalBusinessLd = {
+  // Founder — Person entity مرتبط بالعيادة
+  const founderLd = {
     "@context": "https://schema.org",
-    "@type": ["MedicalBusiness", "Dentist"],
-    "@id": `${siteConfig.baseUrl}/#organization`,
-    name: siteConfig.siteName[L],
-    alternateName: isArabic
-      ? "Davinci Dental Clinic"
-      : "دافينشي لطب الأسنان",
-    description: aboutContent.description,
-    url: siteConfig.baseUrl,
-    logo: logoUrl,
-    image: [ogImageUrl],
-    telephone: "+971555449975",
-    email: clinicContactData.email,
-    priceRange: "$$",
-    currenciesAccepted: "USD, AED, SYP",
-    paymentAccepted: "Cash, Credit Card, Bank Transfer",
-    founder: {
-      "@type": "Person",
-      name: isArabic ? "د. مهند سعودي" : "Dr. Muhanad Saudi",
-      jobTitle: isArabic
-        ? "استشاري آلام الوجه والمفصل الفكي الصدغي"
-        : "Orofacial Pain & TMJ Specialist",
-      alumniOf: {
-        "@type": "CollegeOrUniversity",
-        name: "University of Southern California (USC)",
-      },
-    },
-    sameAs: SOCIAL_LINKS,
-    address: [
-      {
-        "@type": "PostalAddress",
-        streetAddress: isArabic ? "المزرعة" : "Al-Mazraa",
-        addressLocality: isArabic ? "دمشق" : "Damascus",
-        addressCountry: "SY",
-      },
-      {
-        "@type": "PostalAddress",
-        addressLocality: isArabic ? "أبوظبي" : "Abu Dhabi",
-        addressCountry: "AE",
-      },
-    ],
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 33.5138,
-      longitude: 36.2765,
-    },
-    areaServed: [
-      { "@type": "Country", name: isArabic ? "سوريا" : "Syria" },
-      { "@type": "Country", name: isArabic ? "الإمارات" : "UAE" },
-    ],
-    medicalSpecialty: [
-      "Orthodontic",
-      "OralSurgery",
-      "Pediatric",
-      "CosmeticDentistry",
-      "PainMedicine",
-      "Periodontic",
-      "Endodontic",
-    ],
-    availableLanguage: ["ar", "en"],
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-        ],
-        opens: "10:00",
-        closes: "20:00",
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: "Saturday",
-        opens: "10:00",
-        closes: "18:00",
-      },
-    ],
-  };
-
-  // 2) WebSite (with SearchAction)
-  const websiteLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${siteConfig.baseUrl}/#website`,
-    url: siteConfig.baseUrl,
-    name: siteConfig.siteName[L],
-    inLanguage: L === "ar" ? "ar-SY" : "en-US",
-    publisher: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
+    "@type": "Person",
+    "@id": `${siteConfig.baseUrl}/#founder`,
+    name: isArabic ? "د. مهند سعودي" : "Dr. Mouhannad Saudi",
+    jobTitle: isArabic
+      ? "أخصائي تقويم الأسنان، وأخصائي آلام الوجه والفكين والمفصل الفكي الصدغي"
+      : "Orthodontist and  Orofacial pain & TMJ specialist",
+    worksFor: { "@id": `${siteConfig.baseUrl}/#organization` },
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
+      name: "University of Southern California (USC)",
     },
   };
 
-  // 3) WebPage (About page)
-  const webPageLd = {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    "@id": `${pageUrl}/#webpage`,
-    url: pageUrl,
-    name: isArabic
-      ? "من نحن | دافينشي لطب الأسنان"
-      : "About Us | Davinci Dental Clinic",
-    description: aboutContent.description,
-    inLanguage: L === "ar" ? "ar-SY" : "en-US",
-    isPartOf: {
-      "@id": `${siteConfig.baseUrl}/#website`,
-    },
-    about: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
-    },
-    primaryImageOfPage: {
-      "@type": "ImageObject",
-      url: ogImageUrl,
-      width: 1200,
-      height: 630,
-    },
-  };
-
-  // 4) BreadcrumbList
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: isArabic ? "الرئيسية" : "Home",
-        item: `${siteConfig.baseUrl}/${safeLocale}`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: isArabic ? "من نحن" : "About us",
-        item: pageUrl,
-      },
-    ],
-  };
-
-  // 5) MedicalClinic Location — Damascus
+  // Branch — Damascus
   const clinicDamascusLd = {
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
@@ -329,9 +123,7 @@ export default async function AboutPage({
     name: isArabic
       ? "دافينشي لطب الأسنان — دمشق"
       : "Davinci Dental Clinic — Damascus",
-    parentOrganization: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
-    },
+    parentOrganization: { "@id": `${siteConfig.baseUrl}/#organization` },
     address: {
       "@type": "PostalAddress",
       streetAddress: isArabic ? "المزرعة" : "Al-Mazraa",
@@ -343,11 +135,11 @@ export default async function AboutPage({
       latitude: 33.5138,
       longitude: 36.2765,
     },
-    telephone: "+971555449975",
+    telephone: clinicContactData.phone,
     isAcceptingNewPatients: true,
   };
 
-  // 6) MedicalClinic Location — Abu Dhabi
+  // Branch — Abu Dhabi
   const clinicAbuDhabiLd = {
     "@context": "https://schema.org",
     "@type": "MedicalClinic",
@@ -355,9 +147,7 @@ export default async function AboutPage({
     name: isArabic
       ? "دافينشي لطب الأسنان — أبوظبي"
       : "Davinci Dental Clinic — Abu Dhabi",
-    parentOrganization: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
-    },
+    parentOrganization: { "@id": `${siteConfig.baseUrl}/#organization` },
     address: {
       "@type": "PostalAddress",
       addressLocality: isArabic ? "أبوظبي" : "Abu Dhabi",
@@ -367,13 +157,11 @@ export default async function AboutPage({
     isAcceptingNewPatients: true,
   };
 
-  // 7) AggregateRating (based on Google reviews shown)
+  // AggregateRating (based on reviews displayed)
   const aggregateRatingLd = {
     "@context": "https://schema.org",
     "@type": "AggregateRating",
-    itemReviewed: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
-    },
+    itemReviewed: { "@id": `${siteConfig.baseUrl}/#organization` },
     ratingValue: "5.0",
     bestRating: "5",
     worstRating: "1",
@@ -381,15 +169,20 @@ export default async function AboutPage({
     reviewAspect: isArabic ? "رعاية الأسنان" : "Dental care",
   };
 
-  const jsonLdBlocks = [
-    medicalBusinessLd,
-    websiteLd,
-    webPageLd,
-    breadcrumbLd,
+  // Breadcrumb — يُبنى من seo.ts
+  const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
+    { name: isArabic ? "الرئيسية" : "Home", path: "" },
+    { name: isArabic ? "من نحن" : "About us", path: "about" },
+  ]);
+
+  /* Auto-blocks (Organization + WebSite + WebPage + FAQ) + page-specific extras */
+  const jsonLdBlocks = buildPageJsonLd("about", safeLocale, [
+    founderLd,
     clinicDamascusLd,
     clinicAbuDhabiLd,
     aggregateRatingLd,
-  ];
+    breadcrumbLd,
+  ]);
 
   return (
     <main
@@ -403,7 +196,6 @@ export default async function AboutPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
         />
       ))}
-
 
       <div className="pt-28">
         <Breadcrumbs
@@ -526,7 +318,7 @@ export default async function AboutPage({
                     </span>
                   </Link>
                   <a
-                    href={`tel:+971555449975`}
+                    href={`tel:${CALL_NUMBER}`}
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:border-teal hover:text-teal"
                   >
                     <svg
@@ -740,7 +532,7 @@ export default async function AboutPage({
                 {isArabic ? "تواصل معنا" : "Contact us"}
               </Link>
               <a
-                href={`tel:+971555449975`}
+                href={`tel:${CALL_NUMBER}`}
                 className="rounded-full border border-white/30 px-5 py-3 text-white transition hover:bg-white/10"
               >
                 {isArabic ? "اتصل الآن" : "Call now"}

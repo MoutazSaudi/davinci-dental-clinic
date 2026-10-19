@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const ERRORS: Record<string, string> = {
-  invalid_credentials: "Incorrect email or password.",
+  invalid_credentials: "Incorrect username or password.",
   too_many_attempts: "Too many attempts. Please try again in 15 minutes.",
-  invalid_input: "Please enter a valid email and password.",
+  invalid_input: "Please enter a valid username and password.",
 };
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!res.ok) {
@@ -52,14 +52,18 @@ export default function AdminLoginPage() {
         <p className="text-sm text-gray-600 mb-6">Sign in to manage the clinic</p>
 
         <form onSubmit={handleSubmit}>
-          <label className="block mb-2 text-sm font-medium">Email</label>
+          <label className="block mb-2 text-sm font-medium">Username</label>
           <input
             className="w-full mb-4 p-2 border rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            type="text"
+            name="username"
             autoComplete="username"
+            inputMode="text"
             required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "admin-login-error" : undefined}
           />
 
           <label className="block mb-2 text-sm font-medium">Password</label>
@@ -72,7 +76,11 @@ export default function AdminLoginPage() {
             required
           />
 
-          {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
+          {error && (
+            <div id="admin-login-error" className="text-sm text-red-600 mb-3" role="alert">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"

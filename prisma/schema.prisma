@@ -39,18 +39,16 @@ enum MessageSource {
 }
 
 // ───────────────────────── Admin users ─────────────────────────
-
 model AdminUser {
   id           String    @id @default(cuid())
   email        String    @unique
+  username     String    @unique
   name         String?
-  // format: "<salt>:<scrypt-hash-base64>"
   passwordHash String
   role         AdminRole @default(ADMIN)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
-
 // ───────────────────────── Services ─────────────────────────
 
 model ServiceCategory {

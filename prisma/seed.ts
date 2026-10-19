@@ -22,10 +22,14 @@ const servicesRich = servicesRichRaw as unknown as RichByLocale;
 
 async function seedAdmin() {
   const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
+  const username = process.env.SEED_ADMIN_USERNAME?.trim().toLowerCase() || email?.split("@")[0]?.trim() || "admin";
   const password = process.env.SEED_ADMIN_PASSWORD;
 
   if (!email || !password) {
     throw new Error("Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env before seeding.");
+  }
+  if (!username) {
+    throw new Error("SEED_ADMIN_USERNAME must not be empty when seeding the admin user.");
   }
   if (password.length < 10) {
     throw new Error("SEED_ADMIN_PASSWORD must be at least 10 characters.");
@@ -33,10 +37,16 @@ async function seedAdmin() {
 
   await prisma.adminUser.upsert({
     where: { email },
-    update: {},
-    create: { email, name: "Admin", role: "ADMIN", passwordHash: createPasswordRecord(password) },
+    update: { username },
+    create: {
+      email,
+      username,
+      name: "Admin",
+      role: "ADMIN",
+      passwordHash: createPasswordRecord(password),
+    },
   });
-  console.log(`Admin user ready: ${email}`);
+  console.log(`Admin user ready: ${username} (${email})`);
 }
 
 async function seedServices() {

@@ -25,10 +25,10 @@ export const siteConfig = {
 } as const;
 
 export const clinicContactData = {
-  phone: "+971 55 544 9975",
-  call: "+971 55 544 9975",
-  whatsapp: "+971 55 544 9975",
-  email: "info@saudidental.sy",
+  phone: "+963 980 677 113",
+  call: "+963 980 677 113",
+  whatsapp: "+963 980 677 113",
+  email: "info.davincidental@gmail.com",
   address: {
     ar: "المزرعة، دمشق، سوريا",
     en: "Al-Mazraa, Damascus, Syria",

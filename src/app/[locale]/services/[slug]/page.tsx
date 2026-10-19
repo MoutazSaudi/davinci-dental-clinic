@@ -1,144 +1,3 @@
-// import type { Metadata } from "next";
-// import Image from "next/image";
-// import { notFound } from "next/navigation";
-// import { Breadcrumbs } from "@/components/website/Breadcrumbs";
-// import { Footer } from "@/components/website/Footer";
-// import { Header } from "@/components/website/Header";
-// import { PageHeader } from "@/components/website/PageHeader";
-// import { ServiceRequestForm } from "@/components/website/ServiceRequestForm";
-// import { clinicContactData, getServiceBySlug, serviceCatalog } from "@/data/mock/services";
-// import { getMessages, locales, type Locale } from "@/lib/i18n";
-
-// export function generateStaticParams() {
-//   return locales.flatMap((locale) => serviceCatalog.map((service) => ({ locale, slug: service.slug })));
-// }
-
-// export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
-//   const { locale, slug } = await params;
-//   const safeLocale = locale === "ar" ? "ar" : "en";
-//   const service = getServiceBySlug(safeLocale as Locale, slug);
-
-//   if (!service) {
-//     return {
-//       title: safeLocale === "ar" ? "الخدمة غير موجودة" : "Service not found",
-//     };
-//   }
-
-//   return {
-//     title: `${service.title} | Davinci Dental Clinic`,
-//     description: service.description,
-//     alternates: {
-//       languages: {
-//         en: `/en/services/${slug}`,
-//         ar: `/ar/services/${slug}`,
-//       },
-//     },
-//     openGraph: {
-//       title: service.title,
-//       description: service.description,
-//       url: `/${safeLocale}/services/${slug}`,
-//       type: "website",
-//     },
-//   };
-// }
-
-// export default async function ServiceDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
-//   const { locale, slug } = await params;
-//   const safeLocale = locale === "ar" ? "ar" : "en";
-
-//   if (!locales.includes(safeLocale as Locale)) {
-//     notFound();
-//   }
-
-//   const service = getServiceBySlug(safeLocale as Locale, slug);
-
-//   if (!service) {
-//     notFound();
-//   }
-
-//   const messages = getMessages(safeLocale as Locale);
-//   const isArabic = safeLocale === "ar";
-
-//   return (
-//     <main className="min-h-screen bg-background-soft text-foreground" dir={isArabic ? "rtl" : "ltr"}>
-//       <Header locale={safeLocale as Locale} nav={messages.nav} />
-
-//       <div className="pt-28">
-//         <Breadcrumbs
-//           locale={safeLocale as Locale}
-//           items={[{ href: `/${safeLocale}/services`, label: isArabic ? "الخدمات" : "Services" }, { label: service.title }]}
-//         />
-//         <PageHeader
-//           locale={safeLocale as Locale}
-//           eyebrow={service.category}
-//           title={service.title}
-//           description={service.shortDescription}
-//         />
-
-//         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-//           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-//             <div className="overflow-hidden rounded-[30px] border border-border bg-surface shadow-[0_16px_36px_rgba(122,28,81,0.04)]">
-//               <div className="relative h-[420px] w-full">
-//                 <Image
-//                   src={service.image}
-//                   alt={service.title}
-//                   fill
-//                   sizes="(max-width: 1024px) 100vw, 60vw"
-//                   className="object-cover"
-//                 />
-//               </div>
-//               <div className="p-6 sm:p-8">
-//                 <h2 className="text-2xl font-black text-primary">
-//                   {isArabic ? "معلومات الخدمة" : "Service overview"}
-//                 </h2>
-//                 <p className="mt-4 text-base leading-8 text-foreground-muted">{service.description}</p>
-
-//                 <div className="mt-6 rounded-[24px] bg-mint p-5">
-//                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal">
-//                     {isArabic ? "مزايا الخدمة" : "Highlights"}
-//                   </p>
-//                   <ul className="mt-4 space-y-3 text-sm leading-7 text-foreground">
-//                     {service.highlight.map((item) => (
-//                       <li key={item} className="flex items-start gap-3">
-//                         <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gold text-primary">✓</span>
-//                         <span>{item}</span>
-//                       </li>
-//                     ))}
-//                   </ul>
-//                 </div>
-//               </div>
-//             </div>
-
-//             <div className="space-y-6">
-//               <div className="rounded-[28px] bg-primary p-6 text-white shadow-[0_16px_34px_rgba(122,28,81,0.08)]">
-//                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-gold">
-//                   {isArabic ? "نقطة البداية" : "Starting point"}
-//                 </p>
-//                 <h3 className="mt-3 text-2xl font-black text-white">
-//                   {isArabic ? "دعنا نساعدك في تحديد الخطة المناسبة." : "Let us help you choose the right plan."}
-//                 </h3>
-//                 <p className="mt-3 text-sm leading-7 text-white/80">
-//                   {isArabic
-//                     ? "نستمع إلى احتياجك، ونراجع الحالة، ونقترح حلًا مناسبًا وفقًا لأهدافك وراحةك."
-//                     : "We listen carefully to your needs, review the case, and suggest the right approach based on your goals and comfort level."}
-//                 </p>
-//                 <a href={`/${safeLocale}/contact`} className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary">
-//                   {isArabic ? "تواصل معنا" : "Contact us"}
-//                 </a>
-//               </div>
-
-//               <div className="rounded-[28px] border border-border bg-surface p-4 shadow-[0_16px_34px_rgba(122,28,81,0.04)] sm:p-6">
-//                 <ServiceRequestForm locale={safeLocale as Locale} />
-//               </div>
-//             </div>
-//           </div>
-//         </section>
-//       </div>
-
-//       <Footer locale={safeLocale as Locale} footer={{ phone: clinicContactData.phone, email: clinicContactData.email, address: clinicContactData.address[safeLocale as "en" | "ar"] }} nav={messages.nav} />
-//     </main>
-//   );
-// }
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -149,20 +8,31 @@ import { Footer } from "@/components/website/Footer";
 import { Header } from "@/components/website/Header";
 import { PageHeader } from "@/components/website/PageHeader";
 import { ServiceRequestForm } from "@/components/website/ServiceRequestForm";
-import {
-  clinicContactData,
-  getAlternateUrl,
-  getServiceBySlug,
-  serviceCatalog,
-  siteConfig,
-} from "@/data/mock/services";
+import { getServiceBySlug, serviceCatalog } from "@/data/mock/services";
+import { clinicContactData, siteConfig } from "@/data/site";
 import { getMessages, locales, type Locale } from "@/lib/i18n";
+import {
+  buildPageUrl,
+  buildOrganizationSchema,
+  buildWebsiteSchema,
+  buildBreadcrumbSchema,
+  seoDefaults,
+  geoData,
+} from "@/data/seo";
+
+/* ═══════════════════════════════════════════════════
+   Static params
+   ═══════════════════════════════════════════════════ */
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
     serviceCatalog.map((service) => ({ locale, slug: service.slug })),
   );
 }
+
+/* ═══════════════════════════════════════════════════
+   SEO — dynamic per slug, uses seo.ts helpers
+   ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
   params,
@@ -176,15 +46,21 @@ export async function generateMetadata({
   if (!service) {
     return {
       title: safeLocale === "ar" ? "الخدمة غير موجودة" : "Service not found",
+      robots: { index: false, follow: false },
     };
   }
 
-  const title = `${service.title} | ${siteConfig.siteName[safeLocale as Locale]}`;
+  const title = `${service.title} | ${siteConfig.siteName[safeLocale]}`;
   const description = service.rich?.intro ?? service.shortDescription;
-  const path = `/services/${slug}`;
-  const alternates = getAlternateUrl(safeLocale as Locale, path);
-  const canonicalUrl = `${siteConfig.baseUrl}/${safeLocale}${path}`;
-  const imageUrl = service.image;
+  const path = `services/${slug}`;
+  const canonicalUrl = buildPageUrl(safeLocale, path);
+  const alternates = {
+    ar: buildPageUrl("ar", path),
+    en: buildPageUrl("en", path),
+  };
+  const ogImageUrl = service.image.startsWith("http")
+    ? service.image
+    : `${siteConfig.baseUrl}${service.image}`;
 
   return {
     title,
@@ -192,7 +68,7 @@ export async function generateMetadata({
     keywords: [
       service.title,
       service.category,
-      siteConfig.siteName[safeLocale as Locale],
+      siteConfig.siteName[safeLocale],
       safeLocale === "ar" ? "عيادة أسنان دمشق" : "dental clinic Damascus",
       safeLocale === "ar" ? "طب أسنان سوريا" : "dental care Syria",
     ],
@@ -209,11 +85,11 @@ export async function generateMetadata({
       title,
       description,
       url: canonicalUrl,
-      siteName: siteConfig.siteName[safeLocale as Locale],
-      locale: siteConfig.ogLocale[safeLocale as Locale],
+      siteName: siteConfig.siteName[safeLocale],
+      locale: siteConfig.ogLocale[safeLocale],
       images: [
         {
-          url: imageUrl,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: service.title,
@@ -224,16 +100,31 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [imageUrl],
+      images: [ogImageUrl],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
     other: {
-      "geo.region": siteConfig.geo.region,
-      "geo.placename": siteConfig.geo.placename[safeLocale as Locale],
-      "geo.position": siteConfig.geo.position,
-      ICBM: siteConfig.geo.ICBM,
+      "geo.region": geoData.region,
+      "geo.placename": geoData.placename[safeLocale],
+      "geo.position": geoData.position,
+      ICBM: geoData.ICBM,
     },
   };
 }
+
+/* ═══════════════════════════════════════════════════
+   Page
+   ═══════════════════════════════════════════════════ */
 
 export default async function ServiceDetailPage({
   params,
@@ -254,27 +145,60 @@ export default async function ServiceDetailPage({
   const isArabic = safeLocale === "ar";
   const rich = service.rich;
 
-  // JSON-LD
-  const jsonLd = {
+  const pageUrl = buildPageUrl(safeLocale, `services/${slug}`);
+  const imageUrl = service.image.startsWith("http")
+    ? service.image
+    : `${siteConfig.baseUrl}${service.image}`;
+
+  /* ═══════════════════════════════════════════════════
+     JSON-LD — Organization + WebSite + MedicalProcedure + FAQ + Breadcrumb
+     ═══════════════════════════════════════════════════ */
+
+  // MedicalProcedure — specific to this service
+  const procedureLd = {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
+    "@id": `${pageUrl}/#procedure`,
     name: service.title,
-    description: service.rich?.intro ?? service.shortDescription,
-    image: service.image,
-    procedureType: "https://schema.org/NoninvasiveProcedure",
-    howPerformed: service.rich?.sections?.map((s) => s.heading).join(" · "),
-    provider: {
-      "@type": "Dentist",
-      name: siteConfig.siteName[safeLocale as Locale],
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: siteConfig.geo.placename[safeLocale as Locale],
-        addressCountry: siteConfig.geo.region,
-      },
-      telephone: clinicContactData.call,
-    },
-    url: `${siteConfig.baseUrl}/${safeLocale}/services/${slug}`,
+    description: rich?.intro ?? service.shortDescription,
+    image: imageUrl,
+    howPerformed: rich?.sections?.map((s) => s.heading).join(" · "),
+    url: pageUrl,
+    provider: { "@id": `${siteConfig.baseUrl}/#organization` },
   };
+
+  // FAQPage — only when the service has FAQs
+  const faqLd =
+    rich?.faqs && rich.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "@id": `${pageUrl}/#faq`,
+          mainEntity: rich.faqs.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: f.answer,
+            },
+          })),
+        }
+      : null;
+
+  // Breadcrumb: Home → Services → Service
+  const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
+    { name: isArabic ? "الرئيسية" : "Home", path: "" },
+    { name: isArabic ? "الخدمات" : "Services", path: "services" },
+    { name: service.title, path: `services/${slug}` },
+  ]);
+
+  const jsonLdBlocks = [
+    buildOrganizationSchema(safeLocale),
+    buildWebsiteSchema(safeLocale),
+    procedureLd,
+    faqLd,
+    breadcrumbLd,
+  ].filter(Boolean);
 
   // قائمة "خدمات أخرى" — نستثني الحالية
   const otherServices = serviceCatalog
@@ -286,10 +210,13 @@ export default async function ServiceDetailPage({
       className="min-h-screen bg-background-soft text-foreground"
       dir={isArabic ? "rtl" : "ltr"}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {jsonLdBlocks.map((block, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
+        />
+      ))}
 
       <Header locale={safeLocale as Locale} nav={messages.nav} />
 
@@ -471,7 +398,7 @@ export default async function ServiceDetailPage({
                     {isArabic ? "تواصل معنا" : "Contact us"}
                   </Link>
                   <a
-                    href={`tel:${clinicContactData.call.replace(/\s+/g, "")}`}
+                    href={`tel:${seoDefaults.callNumber}`}
                     className="inline-flex rounded-full border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                   >
                     {isArabic ? "اتصل الآن" : "Call now"}
@@ -488,8 +415,7 @@ export default async function ServiceDetailPage({
         footer={{
           phone: clinicContactData.phone,
           email: clinicContactData.email,
-          address:
-            clinicContactData.address[safeLocale as "en" | "ar"],
+          address: clinicContactData.address[safeLocale as "en" | "ar"],
         }}
         nav={messages.nav}
       />

@@ -51,12 +51,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.ortho,
     title: { ar: "علاجات تقويم الأسنان", en: "Orthodontic Treatments" },
     shortDescription: {
-      ar: "مرحباً بك في عيادة سعودي لطب الأسنان، حيث نمنحك ابتسامة جذابة وصحية. نحن متخصصون في رعاية تقويم الأسنان المتقدمة المناسبة للمرضى من جميع الأعمار.",
-      en: "Welcome to Saudi Dental Clinic for an attractive and healthy smile. We specialize in advanced orthodontic care for patients of all ages.",
+      ar: "مرحباً بك في عيادة دافنشي لطب الأسنان، حيث نمنحك ابتسامة جذابة وصحية. نحن متخصصون في رعاية تقويم الأسنان المتقدمة المناسبة للمرضى من جميع الأعمار.",
+      en: "Welcome to Davinci Dental Clinic for an attractive and healthy smile. We specialize in advanced orthodontic care for patients of all ages.",
     },
     description: {
-      ar: "مرحباً بك في عيادة سعودي لطب الأسنان، حيث نمنحك ابتسامة جذابة وصحية. نحن متخصصون في رعاية تقويم الأسنان المتقدمة المناسبة للمرضى من جميع الأعمار.",
-      en: "Welcome to Saudi Dental Clinic for an attractive and healthy smile. We specialize in advanced orthodontic care for patients of all ages.",
+      ar: "مرحباً بك في عيادة دافنشي لطب الأسنان، حيث نمنحك ابتسامة جذابة وصحية. نحن متخصصون في رعاية تقويم الأسنان المتقدمة المناسبة للمرضى من جميع الأعمار.",
+      en: "Welcome to Davinci Dental Clinic for an attractive and healthy smile. We specialize in advanced orthodontic care for patients of all ages.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2017/09/Orthodontic2.jpg",
@@ -80,12 +80,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.ortho,
     title: { ar: "تقويم أسنان الأطفال", en: "Children Orthodontics" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تقويم أسنان الأطفال لتصحيح نمو الأسنان والفكين مبكرًا بأساليب آمنة ومناسبة للأطفال. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus provides early orthodontic correction for children's teeth and jaws safely and comfortably. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تقويم أسنان الأطفال لتصحيح نمو الأسنان والفكين مبكرًا بأساليب آمنة ومناسبة للأطفال. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus provides early orthodontic correction for children's teeth and jaws safely and comfortably. Book your appointment now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تقويم أسنان الأطفال لتصحيح نمو الأسنان والفكين مبكرًا بأساليب آمنة ومناسبة للأطفال. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus provides early orthodontic correction for children's teeth and jaws safely and comfortably. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تقويم أسنان الأطفال لتصحيح نمو الأسنان والفكين مبكرًا بأساليب آمنة ومناسبة للأطفال. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus provides early orthodontic correction for children's teeth and jaws safely and comfortably. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Children-Orthodontics.jpg",
@@ -109,12 +109,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.ortho,
     title: { ar: "التقويم الثابت", en: "Fixed Braces" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات التقويم الثابت لتصحيح اصطفاف الأسنان وعلاج مشاكل الإطباق بدقة ونتائج فعّالة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers fixed braces to correct teeth alignment and treat bite issues precisely with effective results. Book your appointment now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات التقويم الثابت لتصحيح اصطفاف الأسنان وعلاج مشاكل الإطباق بدقة ونتائج فعّالة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers fixed braces to correct teeth alignment and treat bite issues precisely with effective results. Book your appointment now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات التقويم الثابت لتصحيح اصطفاف الأسنان وعلاج مشاكل الإطباق بدقة ونتائج فعّالة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers fixed braces to correct teeth alignment and treat bite issues precisely with effective results. Book your appointment now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات التقويم الثابت لتصحيح اصطفاف الأسنان وعلاج مشاكل الإطباق بدقة ونتائج فعّالة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers fixed braces to correct teeth alignment and treat bite issues precisely with effective results. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Fixed-Braces.jpg",
@@ -141,12 +141,12 @@ export const serviceCatalog: ServiceItem[] = [
       en: "Invisible Braces: Invisalign®",
     },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق التقويم الشفاف إنفزلاين® لتصحيح الأسنان بشكل غير ملحوظ مع راحة عالية ونتائج دقيقة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers Invisalign® clear aligners for discreet teeth straightening with high comfort and accurate results. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق التقويم الشفاف إنفزلاين® لتصحيح الأسنان بشكل غير ملحوظ مع راحة عالية ونتائج دقيقة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers Invisalign® clear aligners for discreet teeth straightening with high comfort and accurate results. Book your appointment now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق التقويم الشفاف إنفزلاين® لتصحيح الأسنان بشكل غير ملحوظ مع راحة عالية ونتائج دقيقة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers Invisalign® clear aligners for discreet teeth straightening with high comfort and accurate results. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق التقويم الشفاف إنفزلاين® لتصحيح الأسنان بشكل غير ملحوظ مع راحة عالية ونتائج دقيقة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers Invisalign® clear aligners for discreet teeth straightening with high comfort and accurate results. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Invisible-Braces.jpg",
@@ -171,12 +171,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.ortho,
     title: { ar: "حالات الطوارئ التقويمية", en: "Orthodontic Emergencies" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات حالات الطوارئ التقويمية للتعامل السريع مع مشاكل التقويم وتخفيف الألم بأمان واحترافية. تواصل معنا فورًا.",
-      en: "Saudi Dental Clinic in Damascus provides orthodontic emergency services for quick handling of braces issues and pain relief safely and professionally. Contact us now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات حالات الطوارئ التقويمية للتعامل السريع مع مشاكل التقويم وتخفيف الألم بأمان واحترافية. تواصل معنا فورًا.",
+      en: "Davinci Dental Clinic in Damascus provides orthodontic emergency services for quick handling of braces issues and pain relief safely and professionally. Contact us now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات حالات الطوارئ التقويمية للتعامل السريع مع مشاكل التقويم وتخفيف الألم بأمان واحترافية. تواصل معنا فورًا.",
-      en: "Saudi Dental Clinic in Damascus provides orthodontic emergency services for quick handling of braces issues and pain relief safely and professionally. Contact us now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات حالات الطوارئ التقويمية للتعامل السريع مع مشاكل التقويم وتخفيف الألم بأمان واحترافية. تواصل معنا فورًا.",
+      en: "Davinci Dental Clinic in Damascus provides orthodontic emergency services for quick handling of braces issues and pain relief safely and professionally. Contact us now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Orthodontic-Emergencies.jpg",
@@ -202,12 +202,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.medical,
     title: { ar: "اضطراب TMJ", en: "TMJ Disorder" },
     shortDescription: {
-      ar: "نقدم رعاية خبيرة لاضطراب المفصل الصدغي الفكي (TMJ) في عيادة سعودي لطب الأسنان مع تقييمات شاملة وخطط علاجية مخصصة لاحتياجاتك.",
-      en: "Experience expert care for TMJ disorder at Saudi Dental Clinic. Our team provides comprehensive evaluations and personalized treatment plans tailored to your needs.",
+      ar: "نقدم رعاية خبيرة لاضطراب المفصل الصدغي الفكي (TMJ) في عيادة دافنشي لطب الأسنان مع تقييمات شاملة وخطط علاجية مخصصة لاحتياجاتك.",
+      en: "Experience expert care for TMJ disorder at Davinci Dental Clinic. Our team provides comprehensive evaluations and personalized treatment plans tailored to your needs.",
     },
     description: {
-      ar: "نقدم رعاية خبيرة لاضطراب المفصل الصدغي الفكي (TMJ) في عيادة سعودي لطب الأسنان مع تقييمات شاملة وخطط علاجية مخصصة لاحتياجاتك.",
-      en: "Experience expert care for TMJ disorder at Saudi Dental Clinic. Our team provides comprehensive evaluations and personalized treatment plans tailored to your needs.",
+      ar: "نقدم رعاية خبيرة لاضطراب المفصل الصدغي الفكي (TMJ) في عيادة دافنشي لطب الأسنان مع تقييمات شاملة وخطط علاجية مخصصة لاحتياجاتك.",
+      en: "Experience expert care for TMJ disorder at Davinci Dental Clinic. Our team provides comprehensive evaluations and personalized treatment plans tailored to your needs.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2024/12/TMJ-Disorder.jpg",
@@ -233,12 +233,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.aesthetic,
     title: { ar: "علاج التجميل السني", en: "Cosmetic Dentistry" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات علاج الأسنان التجميلي لتحسين مظهر الأسنان والابتسامة باستخدام أحدث التقنيات ونتائج طبيعية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers cosmetic dentistry services to enhance the appearance of your teeth and smile using the latest techniques with natural results. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات علاج الأسنان التجميلي لتحسين مظهر الأسنان والابتسامة باستخدام أحدث التقنيات ونتائج طبيعية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers cosmetic dentistry services to enhance the appearance of your teeth and smile using the latest techniques with natural results. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات علاج الأسنان التجميلي لتحسين مظهر الأسنان والابتسامة باستخدام أحدث التقنيات ونتائج طبيعية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers cosmetic dentistry services to enhance the appearance of your teeth and smile using the latest techniques with natural results. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات علاج الأسنان التجميلي لتحسين مظهر الأسنان والابتسامة باستخدام أحدث التقنيات ونتائج طبيعية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers cosmetic dentistry services to enhance the appearance of your teeth and smile using the latest techniques with natural results. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Aesthetic-Treatment.jpg",
@@ -262,12 +262,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.aesthetic,
     title: { ar: "الاستشارة التجميلية", en: "Aesthetic Consultation" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق الاستشارة التجميلية لتقييم ابتسامتك ووضع خطة علاج مخصصة باستخدام أحدث تقنيات تجميل الأسنان. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers aesthetic consultations to evaluate your smile and create a personalized treatment plan using the latest cosmetic dental techniques. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق الاستشارة التجميلية لتقييم ابتسامتك ووضع خطة علاج مخصصة باستخدام أحدث تقنيات تجميل الأسنان. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers aesthetic consultations to evaluate your smile and create a personalized treatment plan using the latest cosmetic dental techniques. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق الاستشارة التجميلية لتقييم ابتسامتك ووضع خطة علاج مخصصة باستخدام أحدث تقنيات تجميل الأسنان. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers aesthetic consultations to evaluate your smile and create a personalized treatment plan using the latest cosmetic dental techniques. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق الاستشارة التجميلية لتقييم ابتسامتك ووضع خطة علاج مخصصة باستخدام أحدث تقنيات تجميل الأسنان. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers aesthetic consultations to evaluate your smile and create a personalized treatment plan using the latest cosmetic dental techniques. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Aesthetic-Consultation.jpg",
@@ -291,12 +291,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.aesthetic,
     title: { ar: "قشور الأسنان", en: "Dental Veneers" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات قشور الأسنان (الفينير) لتحسين شكل ولون الأسنان والحصول على ابتسامة طبيعية ومتناسقة.",
-      en: "Saudi Dental Clinic in Damascus offers dental veneers to improve tooth shape and color for a natural, harmonious smile.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات قشور الأسنان (الفينير) لتحسين شكل ولون الأسنان والحصول على ابتسامة طبيعية ومتناسقة.",
+      en: "Davinci Dental Clinic in Damascus offers dental veneers to improve tooth shape and color for a natural, harmonious smile.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات قشور الأسنان (الفينير) لتحسين شكل ولون الأسنان والحصول على ابتسامة طبيعية ومتناسقة.",
-      en: "Saudi Dental Clinic in Damascus offers dental veneers to improve tooth shape and color for a natural, harmonious smile.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات قشور الأسنان (الفينير) لتحسين شكل ولون الأسنان والحصول على ابتسامة طبيعية ومتناسقة.",
+      en: "Davinci Dental Clinic in Damascus offers dental veneers to improve tooth shape and color for a natural, harmonious smile.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2017/09/Dental-Veneers.jpg",
@@ -321,12 +321,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.aesthetic,
     title: { ar: "تبييض الأسنان وتفتيحها", en: "Teeth Whitening & Bleaching" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تبييض الأسنان وتفتيحها بأحدث التقنيات للحصول على ابتسامة أكثر إشراقًا بأمان ونتائج فعّالة.",
-      en: "Saudi Dental Clinic in Damascus offers teeth whitening and bleaching using the latest techniques for a brighter, safe and effective smile.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تبييض الأسنان وتفتيحها بأحدث التقنيات للحصول على ابتسامة أكثر إشراقًا بأمان ونتائج فعّالة.",
+      en: "Davinci Dental Clinic in Damascus offers teeth whitening and bleaching using the latest techniques for a brighter, safe and effective smile.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تبييض الأسنان وتفتيحها بأحدث التقنيات للحصول على ابتسامة أكثر إشراقًا بأمان ونتائج فعّالة.",
-      en: "Saudi Dental Clinic in Damascus offers teeth whitening and bleaching using the latest techniques for a brighter, safe and effective smile.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تبييض الأسنان وتفتيحها بأحدث التقنيات للحصول على ابتسامة أكثر إشراقًا بأمان ونتائج فعّالة.",
+      en: "Davinci Dental Clinic in Damascus offers teeth whitening and bleaching using the latest techniques for a brighter, safe and effective smile.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2017/09/Teeth-Whitening-Bleaching.jpg",
@@ -350,12 +350,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.aesthetic,
     title: { ar: "ابتسامة هوليود", en: "Hollywood Smile" },
     shortDescription: {
-      ar: "احصل على ابتسامة هوليود في عيادة سعودي لطب الأسنان في دمشق باستخدام أحدث تقنيات التجميل للحصول على ابتسامة مشرقة وطبيعية تناسبك.",
-      en: "Get a Hollywood Smile at Saudi Dental Clinic in Damascus using state-of-the-art aesthetic technology for a radiant, natural look that suits you.",
+      ar: "احصل على ابتسامة هوليود في عيادة دافنشي لطب الأسنان في دمشق باستخدام أحدث تقنيات التجميل للحصول على ابتسامة مشرقة وطبيعية تناسبك.",
+      en: "Get a Hollywood Smile at Davinci Dental Clinic in Damascus using state-of-the-art aesthetic technology for a radiant, natural look that suits you.",
     },
     description: {
-      ar: "احصل على ابتسامة هوليود في عيادة سعودي لطب الأسنان في دمشق باستخدام أحدث تقنيات التجميل للحصول على ابتسامة مشرقة وطبيعية تناسبك.",
-      en: "Get a Hollywood Smile at Saudi Dental Clinic in Damascus using state-of-the-art aesthetic technology for a radiant, natural look that suits you.",
+      ar: "احصل على ابتسامة هوليود في عيادة دافنشي لطب الأسنان في دمشق باستخدام أحدث تقنيات التجميل للحصول على ابتسامة مشرقة وطبيعية تناسبك.",
+      en: "Get a Hollywood Smile at Davinci Dental Clinic in Damascus using state-of-the-art aesthetic technology for a radiant, natural look that suits you.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2017/09/Hollywood-Smile2.jpg",
@@ -381,12 +381,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.pediatric,
     title: { ar: "طب أسنان الأطفال", en: "Pediatric Dentistry" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات متخصصة في طب أسنان الأطفال ضمن بيئة مريحة وآمنة، مع عناية لطيفة تناسب جميع الأعمار. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers specialized pediatric dentistry in a comfortable and safe environment, with gentle care suitable for all ages. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات متخصصة في طب أسنان الأطفال ضمن بيئة مريحة وآمنة، مع عناية لطيفة تناسب جميع الأعمار. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers specialized pediatric dentistry in a comfortable and safe environment, with gentle care suitable for all ages. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات متخصصة في طب أسنان الأطفال ضمن بيئة مريحة وآمنة، مع عناية لطيفة تناسب جميع الأعمار. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers specialized pediatric dentistry in a comfortable and safe environment, with gentle care suitable for all ages. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات متخصصة في طب أسنان الأطفال ضمن بيئة مريحة وآمنة، مع عناية لطيفة تناسب جميع الأعمار. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers specialized pediatric dentistry in a comfortable and safe environment, with gentle care suitable for all ages. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2017/09/Pediatric-Dentistry2.jpg",
@@ -412,12 +412,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.surgery,
     title: { ar: "جراحة الفم والأسنان", en: "Oral Surgery" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات جراحة الفم والأسنان باستخدام تقنيات متقدمة لعلاج الحالات المعقدة بدقة وأمان. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers oral surgery services using advanced techniques to treat complex cases with precision and safety. Book your appointment now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات جراحة الفم والأسنان باستخدام تقنيات متقدمة لعلاج الحالات المعقدة بدقة وأمان. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers oral surgery services using advanced techniques to treat complex cases with precision and safety. Book your appointment now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات جراحة الفم والأسنان باستخدام تقنيات متقدمة لعلاج الحالات المعقدة بدقة وأمان. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers oral surgery services using advanced techniques to treat complex cases with precision and safety. Book your appointment now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات جراحة الفم والأسنان باستخدام تقنيات متقدمة لعلاج الحالات المعقدة بدقة وأمان. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers oral surgery services using advanced techniques to treat complex cases with precision and safety. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Oral-Surgical-Procedure.jpg",
@@ -441,12 +441,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.surgery,
     title: { ar: "جراحة زراعة الأسنان", en: "Dental Implant Surgery" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات جراحة زراعة الأسنان باستخدام تقنيات متقدمة لتعويض الأسنان المفقودة واستعادة الابتسامة بثبات وأمان.",
-      en: "Saudi Dental Clinic in Damascus offers dental implant surgery using advanced techniques to replace missing teeth and restore your smile securely and safely.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات جراحة زراعة الأسنان باستخدام تقنيات متقدمة لتعويض الأسنان المفقودة واستعادة الابتسامة بثبات وأمان.",
+      en: "Davinci Dental Clinic in Damascus offers dental implant surgery using advanced techniques to replace missing teeth and restore your smile securely and safely.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات جراحة زراعة الأسنان باستخدام تقنيات متقدمة لتعويض الأسنان المفقودة واستعادة الابتسامة بثبات وأمان.",
-      en: "Saudi Dental Clinic in Damascus offers dental implant surgery using advanced techniques to replace missing teeth and restore your smile securely and safely.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات جراحة زراعة الأسنان باستخدام تقنيات متقدمة لتعويض الأسنان المفقودة واستعادة الابتسامة بثبات وأمان.",
+      en: "Davinci Dental Clinic in Damascus offers dental implant surgery using advanced techniques to replace missing teeth and restore your smile securely and safely.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2017/09/Dental-Implant-Surgery.jpg",
@@ -470,12 +470,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.maxillo,
     title: { ar: "جراحة الفم والوجه والفكين", en: "Maxillofacial Surgery" },
     shortDescription: {
-      ar: "في عيادة سعودي لطب الأسنان نقدم خدمات شاملة لجراحة الفم والوجه والفكين لمعالجة الحالات المعقدة واستعادة الوظيفة وتحسين المظهر.",
-      en: "At Saudi Dental Clinic, we offer comprehensive maxillofacial surgery services to address complex oral and facial conditions, restoring function and enhancing aesthetics.",
+      ar: "في عيادة دافنشي لطب الأسنان نقدم خدمات شاملة لجراحة الفم والوجه والفكين لمعالجة الحالات المعقدة واستعادة الوظيفة وتحسين المظهر.",
+      en: "At Davinci Dental Clinic, we offer comprehensive maxillofacial surgery services to address complex oral and facial conditions, restoring function and enhancing aesthetics.",
     },
     description: {
-      ar: "في عيادة سعودي لطب الأسنان نقدم خدمات شاملة لجراحة الفم والوجه والفكين لمعالجة الحالات المعقدة واستعادة الوظيفة وتحسين المظهر.",
-      en: "At Saudi Dental Clinic, we offer comprehensive maxillofacial surgery services to address complex oral and facial conditions, restoring function and enhancing aesthetics.",
+      ar: "في عيادة دافنشي لطب الأسنان نقدم خدمات شاملة لجراحة الفم والوجه والفكين لمعالجة الحالات المعقدة واستعادة الوظيفة وتحسين المظهر.",
+      en: "At Davinci Dental Clinic, we offer comprehensive maxillofacial surgery services to address complex oral and facial conditions, restoring function and enhancing aesthetics.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Maxillofacial-surgery-1000-600.jpg",
@@ -500,12 +500,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.surgery,
     title: { ar: "خلع الأسنان", en: "Tooth Extraction" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات خلع الأسنان بأحدث التقنيات وبدون ألم قدر الإمكان، مع رعاية طبية آمنة وسريعة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers tooth extraction with the latest techniques and minimal pain, providing safe and quick medical care. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات خلع الأسنان بأحدث التقنيات وبدون ألم قدر الإمكان، مع رعاية طبية آمنة وسريعة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers tooth extraction with the latest techniques and minimal pain, providing safe and quick medical care. Book your appointment now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات خلع الأسنان بأحدث التقنيات وبدون ألم قدر الإمكان، مع رعاية طبية آمنة وسريعة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers tooth extraction with the latest techniques and minimal pain, providing safe and quick medical care. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات خلع الأسنان بأحدث التقنيات وبدون ألم قدر الإمكان، مع رعاية طبية آمنة وسريعة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers tooth extraction with the latest techniques and minimal pain, providing safe and quick medical care. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/05/Tooth-Extraction-1.jpg",
@@ -531,12 +531,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.endo,
     title: { ar: "علاج جذور الأسنان", en: "Root Canal Treatment" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات علاج جذور الأسنان باستخدام تقنيات دقيقة لتخفيف الألم والحفاظ على الأسنان الطبيعية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers root canal treatment using precise techniques to relieve pain and preserve natural teeth. Book your appointment now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات علاج جذور الأسنان باستخدام تقنيات دقيقة لتخفيف الألم والحفاظ على الأسنان الطبيعية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers root canal treatment using precise techniques to relieve pain and preserve natural teeth. Book your appointment now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات علاج جذور الأسنان باستخدام تقنيات دقيقة لتخفيف الألم والحفاظ على الأسنان الطبيعية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers root canal treatment using precise techniques to relieve pain and preserve natural teeth. Book your appointment now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات علاج جذور الأسنان باستخدام تقنيات دقيقة لتخفيف الألم والحفاظ على الأسنان الطبيعية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers root canal treatment using precise techniques to relieve pain and preserve natural teeth. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/05/Root-Canal-Treatment-1.jpg",
@@ -562,12 +562,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.restorative,
     title: { ar: "ترميم الأسنان", en: "Tooth Restoration" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات ترميم الأسنان لإصلاح التلف واستعادة الوظيفة والمظهر الطبيعي باستخدام تقنيات ومواد حديثة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers tooth restoration to repair damage and restore function and natural appearance using modern techniques and materials. Book now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات ترميم الأسنان لإصلاح التلف واستعادة الوظيفة والمظهر الطبيعي باستخدام تقنيات ومواد حديثة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers tooth restoration to repair damage and restore function and natural appearance using modern techniques and materials. Book now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات ترميم الأسنان لإصلاح التلف واستعادة الوظيفة والمظهر الطبيعي باستخدام تقنيات ومواد حديثة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers tooth restoration to repair damage and restore function and natural appearance using modern techniques and materials. Book now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات ترميم الأسنان لإصلاح التلف واستعادة الوظيفة والمظهر الطبيعي باستخدام تقنيات ومواد حديثة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers tooth restoration to repair damage and restore function and natural appearance using modern techniques and materials. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Dental-Tooth-Restoration-1.jpg",
@@ -591,12 +591,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.restorative,
     title: { ar: "حشوات الأسنان المركبة", en: "Composite Dental Fillings" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق حشوات الأسنان المركبة بلون طبيعي ومواد عالية الجودة لاستعادة وظيفة الأسنان ومظهرها الجمالي. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers composite dental fillings with natural color and high-quality materials to restore tooth function and aesthetics. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق حشوات الأسنان المركبة بلون طبيعي ومواد عالية الجودة لاستعادة وظيفة الأسنان ومظهرها الجمالي. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers composite dental fillings with natural color and high-quality materials to restore tooth function and aesthetics. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق حشوات الأسنان المركبة بلون طبيعي ومواد عالية الجودة لاستعادة وظيفة الأسنان ومظهرها الجمالي. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers composite dental fillings with natural color and high-quality materials to restore tooth function and aesthetics. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق حشوات الأسنان المركبة بلون طبيعي ومواد عالية الجودة لاستعادة وظيفة الأسنان ومظهرها الجمالي. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers composite dental fillings with natural color and high-quality materials to restore tooth function and aesthetics. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Composite-Dental-Fillings.jpg",
@@ -620,12 +620,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.restorative,
     title: { ar: "تيجان الأسنان", en: "Dental Crowns" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تيجان الأسنان باستخدام مواد عالية الجودة لاستعادة قوة الأسنان ومظهرها الطبيعي بدقة واحترافية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers dental crowns using high-quality materials to restore tooth strength and natural appearance with precision. Book now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تيجان الأسنان باستخدام مواد عالية الجودة لاستعادة قوة الأسنان ومظهرها الطبيعي بدقة واحترافية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers dental crowns using high-quality materials to restore tooth strength and natural appearance with precision. Book now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تيجان الأسنان باستخدام مواد عالية الجودة لاستعادة قوة الأسنان ومظهرها الطبيعي بدقة واحترافية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers dental crowns using high-quality materials to restore tooth strength and natural appearance with precision. Book now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تيجان الأسنان باستخدام مواد عالية الجودة لاستعادة قوة الأسنان ومظهرها الطبيعي بدقة واحترافية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers dental crowns using high-quality materials to restore tooth strength and natural appearance with precision. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/05/Dental-Crowns.jpg",
@@ -645,12 +645,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.restorative,
     title: { ar: "جسور الأسنان", en: "Dental Bridges" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق حلول جسور الأسنان لتعويض الأسنان المفقودة واستعادة الوظيفة والمظهر الطبيعي بدقة ومواد عالية الجودة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers dental bridges to replace missing teeth and restore function and natural appearance with precision and high-quality materials. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق حلول جسور الأسنان لتعويض الأسنان المفقودة واستعادة الوظيفة والمظهر الطبيعي بدقة ومواد عالية الجودة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers dental bridges to replace missing teeth and restore function and natural appearance with precision and high-quality materials. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق حلول جسور الأسنان لتعويض الأسنان المفقودة واستعادة الوظيفة والمظهر الطبيعي بدقة ومواد عالية الجودة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers dental bridges to replace missing teeth and restore function and natural appearance with precision and high-quality materials. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق حلول جسور الأسنان لتعويض الأسنان المفقودة واستعادة الوظيفة والمظهر الطبيعي بدقة ومواد عالية الجودة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers dental bridges to replace missing teeth and restore function and natural appearance with precision and high-quality materials. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Dental-Bridges.jpg",
@@ -674,12 +674,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.restorative,
     title: { ar: "الحشوات والحشوات الإضافية", en: "Inlays & Onlays" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات الحشوات والحشوات الإضافية باستخدام مواد حديثة وآمنة لاستعادة وظيفة الأسنان ومظهرها الطبيعي. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers inlays and onlays using modern, safe materials to restore tooth function and natural appearance. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات الحشوات والحشوات الإضافية باستخدام مواد حديثة وآمنة لاستعادة وظيفة الأسنان ومظهرها الطبيعي. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers inlays and onlays using modern, safe materials to restore tooth function and natural appearance. Book your appointment now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات الحشوات والحشوات الإضافية باستخدام مواد حديثة وآمنة لاستعادة وظيفة الأسنان ومظهرها الطبيعي. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers inlays and onlays using modern, safe materials to restore tooth function and natural appearance. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات الحشوات والحشوات الإضافية باستخدام مواد حديثة وآمنة لاستعادة وظيفة الأسنان ومظهرها الطبيعي. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers inlays and onlays using modern, safe materials to restore tooth function and natural appearance. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Inlays-and-Onlays.jpg",
@@ -702,12 +702,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.emergency,
     title: { ar: "طوارئ الأسنان", en: "Dental Emergency" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات طوارئ الأسنان للتعامل السريع مع الألم، الكسور، والتهابات الأسنان على يد أطباء متخصصين. تواصل معنا فورًا.",
-      en: "Saudi Dental Clinic in Damascus provides dental emergency services for quick handling of pain, fractures, and tooth infections by specialist doctors. Contact us now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات طوارئ الأسنان للتعامل السريع مع الألم، الكسور، والتهابات الأسنان على يد أطباء متخصصين. تواصل معنا فورًا.",
+      en: "Davinci Dental Clinic in Damascus provides dental emergency services for quick handling of pain, fractures, and tooth infections by specialist doctors. Contact us now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات طوارئ الأسنان للتعامل السريع مع الألم، الكسور، والتهابات الأسنان على يد أطباء متخصصين. تواصل معنا فورًا.",
-      en: "Saudi Dental Clinic in Damascus provides dental emergency services for quick handling of pain, fractures, and tooth infections by specialist doctors. Contact us now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات طوارئ الأسنان للتعامل السريع مع الألم، الكسور، والتهابات الأسنان على يد أطباء متخصصين. تواصل معنا فورًا.",
+      en: "Davinci Dental Clinic in Damascus provides dental emergency services for quick handling of pain, fractures, and tooth infections by specialist doctors. Contact us now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Dental-Emergency-1.jpg",
@@ -736,12 +736,12 @@ export const serviceCatalog: ServiceItem[] = [
       en: "Dental Cleaning & Oral Hygiene",
     },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تنظيف الأسنان والعناية بصحة الفم باستخدام تقنيات حديثة للحفاظ على أسنان صحية وابتسامة نظيفة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers dental cleaning and oral hygiene using modern techniques to maintain healthy teeth and a clean smile. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تنظيف الأسنان والعناية بصحة الفم باستخدام تقنيات حديثة للحفاظ على أسنان صحية وابتسامة نظيفة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers dental cleaning and oral hygiene using modern techniques to maintain healthy teeth and a clean smile. Book your appointment now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق خدمات تنظيف الأسنان والعناية بصحة الفم باستخدام تقنيات حديثة للحفاظ على أسنان صحية وابتسامة نظيفة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers dental cleaning and oral hygiene using modern techniques to maintain healthy teeth and a clean smile. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق خدمات تنظيف الأسنان والعناية بصحة الفم باستخدام تقنيات حديثة للحفاظ على أسنان صحية وابتسامة نظيفة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers dental cleaning and oral hygiene using modern techniques to maintain healthy teeth and a clean smile. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/05/Dental-Cleaning-Hygiene.jpg",
@@ -769,12 +769,12 @@ export const serviceCatalog: ServiceItem[] = [
       en: "Cavities & Tooth Decay Prevention",
     },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق حلولًا فعّالة للوقاية من تسوّس الأسنان والتجاويف للحفاظ على صحة أسنانك ومنع المضاعفات المستقبلية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers effective solutions to prevent tooth decay and cavities, protecting your dental health and preventing future complications. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق حلولًا فعّالة للوقاية من تسوّس الأسنان والتجاويف للحفاظ على صحة أسنانك ومنع المضاعفات المستقبلية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers effective solutions to prevent tooth decay and cavities, protecting your dental health and preventing future complications. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق حلولًا فعّالة للوقاية من تسوّس الأسنان والتجاويف للحفاظ على صحة أسنانك ومنع المضاعفات المستقبلية. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers effective solutions to prevent tooth decay and cavities, protecting your dental health and preventing future complications. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق حلولًا فعّالة للوقاية من تسوّس الأسنان والتجاويف للحفاظ على صحة أسنانك ومنع المضاعفات المستقبلية. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers effective solutions to prevent tooth decay and cavities, protecting your dental health and preventing future complications. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Cavities-Prevention.jpg",
@@ -800,12 +800,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.preventive,
     title: { ar: "واقيات الفم", en: "Mouth Guards" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق واقيات فم مخصصة لحماية الأسنان أثناء الرياضة أو علاج صرير الأسنان، بتصميم مريح ومواد طبية آمنة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers custom mouth guards to protect teeth during sports or treat bruxism, with comfortable design and safe medical materials. Book now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق واقيات فم مخصصة لحماية الأسنان أثناء الرياضة أو علاج صرير الأسنان، بتصميم مريح ومواد طبية آمنة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers custom mouth guards to protect teeth during sports or treat bruxism, with comfortable design and safe medical materials. Book now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق واقيات فم مخصصة لحماية الأسنان أثناء الرياضة أو علاج صرير الأسنان، بتصميم مريح ومواد طبية آمنة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers custom mouth guards to protect teeth during sports or treat bruxism, with comfortable design and safe medical materials. Book now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق واقيات فم مخصصة لحماية الأسنان أثناء الرياضة أو علاج صرير الأسنان، بتصميم مريح ومواد طبية آمنة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers custom mouth guards to protect teeth during sports or treat bruxism, with comfortable design and safe medical materials. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Mouth-guards.jpg",
@@ -831,12 +831,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.perio,
     title: { ar: "علاج أمراض اللثة", en: "Gum Disease Treatment" },
     shortDescription: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق علاج أمراض اللثة باستخدام تقنيات حديثة للحفاظ على صحة اللثة والأسنان ومنع المضاعفات. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus provides gum disease treatment using modern techniques to maintain gum and teeth health and prevent complications. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق علاج أمراض اللثة باستخدام تقنيات حديثة للحفاظ على صحة اللثة والأسنان ومنع المضاعفات. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus provides gum disease treatment using modern techniques to maintain gum and teeth health and prevent complications. Book your appointment now.",
     },
     description: {
-      ar: "توفر عيادة سعودي لطب الأسنان في دمشق علاج أمراض اللثة باستخدام تقنيات حديثة للحفاظ على صحة اللثة والأسنان ومنع المضاعفات. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus provides gum disease treatment using modern techniques to maintain gum and teeth health and prevent complications. Book your appointment now.",
+      ar: "توفر عيادة دافنشي لطب الأسنان في دمشق علاج أمراض اللثة باستخدام تقنيات حديثة للحفاظ على صحة اللثة والأسنان ومنع المضاعفات. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus provides gum disease treatment using modern techniques to maintain gum and teeth health and prevent complications. Book your appointment now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/05/Gum-Disease-Treatment-1.jpg",
@@ -862,12 +862,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.special,
     title: { ar: "دافينشي كير©", en: "Davinci Care©" },
     shortDescription: {
-      ar: "برنامج دافينشي كير© في عيادة سعودي لطب الأسنان في دمشق يوفر رعاية شاملة ومتابعة مخصصة للحفاظ على صحة الفم والأسنان على المدى الطويل. احجز الآن.",
-      en: "The Davinci Care© program at Saudi Dental Clinic in Damascus provides comprehensive care and personalized follow-up to maintain long-term oral and dental health. Book now.",
+      ar: "برنامج دافينشي كير© في عيادة دافنشي لطب الأسنان في دمشق يوفر رعاية شاملة ومتابعة مخصصة للحفاظ على صحة الفم والأسنان على المدى الطويل. احجز الآن.",
+      en: "The Davinci Care© program at Davinci Dental Clinic in Damascus provides comprehensive care and personalized follow-up to maintain long-term oral and dental health. Book now.",
     },
     description: {
-      ar: "برنامج دافينشي كير© في عيادة سعودي لطب الأسنان في دمشق يوفر رعاية شاملة ومتابعة مخصصة للحفاظ على صحة الفم والأسنان على المدى الطويل. احجز الآن.",
-      en: "The Davinci Care© program at Saudi Dental Clinic in Damascus provides comprehensive care and personalized follow-up to maintain long-term oral and dental health. Book now.",
+      ar: "برنامج دافينشي كير© في عيادة دافنشي لطب الأسنان في دمشق يوفر رعاية شاملة ومتابعة مخصصة للحفاظ على صحة الفم والأسنان على المدى الطويل. احجز الآن.",
+      en: "The Davinci Care© program at Davinci Dental Clinic in Damascus provides comprehensive care and personalized follow-up to maintain long-term oral and dental health. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/DavinciCare.jpg",
@@ -891,12 +891,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.special,
     title: { ar: "طب الأسنان بدون ألم", en: "Pain-Free Dentistry" },
     shortDescription: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات طب الأسنان بدون ألم باستخدام تقنيات تخدير حديثة لضمان راحة المريض وتجربة علاج آمنة ومريحة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers pain-free dentistry using modern anesthesia techniques to ensure patient comfort and a safe, comfortable treatment experience. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات طب الأسنان بدون ألم باستخدام تقنيات تخدير حديثة لضمان راحة المريض وتجربة علاج آمنة ومريحة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers pain-free dentistry using modern anesthesia techniques to ensure patient comfort and a safe, comfortable treatment experience. Book now.",
     },
     description: {
-      ar: "تقدم عيادة سعودي لطب الأسنان في دمشق خدمات طب الأسنان بدون ألم باستخدام تقنيات تخدير حديثة لضمان راحة المريض وتجربة علاج آمنة ومريحة. احجز موعدك الآن.",
-      en: "Saudi Dental Clinic in Damascus offers pain-free dentistry using modern anesthesia techniques to ensure patient comfort and a safe, comfortable treatment experience. Book now.",
+      ar: "تقدم عيادة دافنشي لطب الأسنان في دمشق خدمات طب الأسنان بدون ألم باستخدام تقنيات تخدير حديثة لضمان راحة المريض وتجربة علاج آمنة ومريحة. احجز موعدك الآن.",
+      en: "Davinci Dental Clinic in Damascus offers pain-free dentistry using modern anesthesia techniques to ensure patient comfort and a safe, comfortable treatment experience. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/Pain-free-dentistry.jpg",
@@ -916,12 +916,12 @@ export const serviceCatalog: ServiceItem[] = [
     category: C.special,
     title: { ar: "فحص دافنشي الشامل", en: "Davinci Comprehensive Checkup" },
     shortDescription: {
-      ar: "يقدم فحص دافنشي الشامل في عيادة سعودي لطب الأسنان في دمشق تقييمًا دقيقًا لصحة الفم والأسنان باستخدام تقنيات متقدمة للكشف المبكر ووضع خطة علاج متكاملة. احجز الآن.",
-      en: "The Davinci comprehensive checkup at Saudi Dental Clinic in Damascus provides an accurate assessment of oral and dental health using advanced techniques for early detection and an integrated treatment plan. Book now.",
+      ar: "يقدم فحص دافنشي الشامل في عيادة دافنشي لطب الأسنان في دمشق تقييمًا دقيقًا لصحة الفم والأسنان باستخدام تقنيات متقدمة للكشف المبكر ووضع خطة علاج متكاملة. احجز الآن.",
+      en: "The Davinci comprehensive checkup at Davinci Dental Clinic in Damascus provides an accurate assessment of oral and dental health using advanced techniques for early detection and an integrated treatment plan. Book now.",
     },
     description: {
-      ar: "يقدم فحص دافنشي الشامل في عيادة سعودي لطب الأسنان في دمشق تقييمًا دقيقًا لصحة الفم والأسنان باستخدام تقنيات متقدمة للكشف المبكر ووضع خطة علاج متكاملة. احجز الآن.",
-      en: "The Davinci comprehensive checkup at Saudi Dental Clinic in Damascus provides an accurate assessment of oral and dental health using advanced techniques for early detection and an integrated treatment plan. Book now.",
+      ar: "يقدم فحص دافنشي الشامل في عيادة دافنشي لطب الأسنان في دمشق تقييمًا دقيقًا لصحة الفم والأسنان باستخدام تقنيات متقدمة للكشف المبكر ووضع خطة علاج متكاملة. احجز الآن.",
+      en: "The Davinci comprehensive checkup at Davinci Dental Clinic in Damascus provides an accurate assessment of oral and dental health using advanced techniques for early detection and an integrated treatment plan. Book now.",
     },
     image:
       "https://davincidental.ae/wp-content/uploads/2023/06/DavinciCheck.jpg",

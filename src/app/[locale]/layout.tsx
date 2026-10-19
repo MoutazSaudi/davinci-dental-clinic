@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Cairo, Inter } from "next/font/google";
 import { Footer } from "@/components/website/Footer";
 import { Header } from "@/components/website/Header";
-import { clinicContactData } from "@/data/mock/services";
+import { clinicContactData, siteConfig } from "@/data/site";
 import { getMessages, locales, type Locale } from "@/lib/i18n";
 
 const inter = Inter({
@@ -17,15 +17,43 @@ const cairo = Cairo({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Davinci Dental Clinic",
-  description:
-    "Modern dental clinic focused on preventive, family, and cosmetic care — Damascus & Abu Dhabi.",
-};
+/* ═══════════════════════════════════════════════════
+   Metadata — locale-aware fallback
+   (كل صفحة لها generateMetadata، هذا احتياط لصفحات 404)
+   ═══════════════════════════════════════════════════ */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const safeLocale = locale === "ar" ? "ar" : "en";
+
+  return {
+    metadataBase: new URL(siteConfig.baseUrl),
+    title: {
+      default: siteConfig.defaultTitle[safeLocale],
+      template: `%s | ${siteConfig.siteName[safeLocale]}`,
+    },
+    description: siteConfig.defaultDescription[safeLocale],
+    alternates: {
+      languages: {
+        [siteConfig.hreflang.ar]: `${siteConfig.baseUrl}/ar`,
+        [siteConfig.hreflang.en]: `${siteConfig.baseUrl}/en`,
+        "x-default": `${siteConfig.baseUrl}/en`,
+      },
+    },
+  };
+}
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
+
+/* ═══════════════════════════════════════════════════
+   Layout
+   ═══════════════════════════════════════════════════ */
 
 export default async function LocaleLayout({
   children,
@@ -44,7 +72,6 @@ export default async function LocaleLayout({
       lang={isArabic ? "ar" : "en"}
       dir={isArabic ? "rtl" : "ltr"}
       className={`${inter.variable} ${cairo.variable} min-h-screen bg-[#f6f9f8] text-[#172b36]`}
-      suppressHydrationWarning
     >
       <Header locale={safeLocale} nav={messages.nav} />
       {children}
