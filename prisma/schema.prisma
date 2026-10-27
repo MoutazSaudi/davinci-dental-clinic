@@ -41,7 +41,6 @@ enum MessageSource {
 // ───────────────────────── Admin users ─────────────────────────
 model AdminUser {
   id           String    @id @default(cuid())
-  email        String    @unique
   username     String    @unique
   name         String?
   passwordHash String
@@ -122,6 +121,7 @@ model Doctor {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   translations DoctorTranslation[]
+  appointments Appointment[]
 
   @@index([status, sortOrder])
 }
@@ -275,13 +275,23 @@ model BlogPostTranslation {
   @@unique([postId, locale])
 }
 
+// ───────────────────────── Appointments ─────────────────────────
+
 model Appointment {
   id           String            @id @default(cuid())
   patientName  String
   patientPhone String
+  patientEmail String?
   scheduledAt  DateTime
   status       AppointmentStatus @default(PENDING)
   notes        String?
+  doctorId     String?
+  doctor       Doctor?           @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  serviceSlug  String?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([doctorId])
+  @@index([createdAt])
 }

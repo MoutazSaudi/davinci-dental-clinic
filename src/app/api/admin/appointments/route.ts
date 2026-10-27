@@ -4,134 +4,124 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminFromRequest } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth";
 
-const appointmentSchema = z.object({
-  patientName: z.string().trim().min(2, "اسم المريض مطلوب").optional(),
-  patientPhone: z.string().trim().min(7, "رقم الهاتف مطلوب").optional(),
-  phone: z.string().trim().min(7, "رقم الهاتف مطلوب").optional(),
-  email: z.string().trim().email("البريد غير صحيح").optional().or(z.literal("")),
-  notes: z.string().trim().optional(),
-  date: z.union([z.string().trim(), z.date()]).optional(),
-  scheduledAt: z.union([z.string().trim(), z.date()]).optional(),
+const patchSchema = z.object({
   status: z
-    .enum(["PENDING", "CONFIRMED", "CANCELLED", "pending", "confirmed", "cancelled"])
+    .enum(["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "NO_SHOW"])
     .optional(),
+  doctorId: z.string().nullable().optional(),
+  notes: z.string().optional(),
 });
 
-const normalizeStatus = (value: string) => value.toUpperCase() as "PENDING" | "CONFIRMED" | "CANCELLED";
-
-const serializeAppointment = (item: {
+type AppointmentWithDoctor = {
   id: string;
   patientName: string;
   patientPhone: string;
+  patientEmail: string | null;
   scheduledAt: Date;
   status: string;
   notes: string | null;
+  serviceSlug: string | null;
   createdAt: Date;
   updatedAt: Date;
-}) => ({
-  id: item.id,
-  patientName: item.patientName,
-  phone: item.patientPhone,
-  service: null,
-  doctor: null,
-  date: item.scheduledAt.toISOString(),
-  status: item.status.toLowerCase(),
-  notes: item.notes,
-  createdAt: item.createdAt,
-  updatedAt: item.updatedAt,
-});
+  doctor: {
+    id: string;
+    slug: string;
+    translations: Array<{ locale: string; name: string }>;
+  } | null;
+};
 
-export async function GET(req: Request) {
-  const auth = await requireAdminFromRequest();
+function serialize(a: AppointmentWithDoctor) {
+  const en = a.doctor?.translations.find((t) => t.locale === "en");
+  const ar = a.doctor?.translations.find((t) => t.locale === "ar");
+
+  return {
+    id: a.id,
+    patientName: a.patientName,
+    patientPhone: a.patientPhone,
+    patientEmail: a.patientEmail,
+    scheduledAt: a.scheduledAt.toISOString(),
+    status: a.status,
+    notes: a.notes,
+    serviceSlug: a.serviceSlug,
+    createdAt: a.createdAt.toISOString(),
+    updatedAt: a.updatedAt.toISOString(),
+    doctor: a.doctor
+      ? {
+          id: a.doctor.id,
+          slug: a.doctor.slug,
+          name: {
+            en: en?.name ?? ar?.name ?? "",
+            ar: ar?.name ?? en?.name ?? "",
+          },
+        }
+      : null,
+  };
+}
+
+const includeDoctor = {
+  doctor: {
+    include: { translations: true },
+  },
+};
+
+export async function GET() {
+  const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
   const items = await prisma.appointment.findMany({
+    include: includeDoctor,
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(items.map(serializeAppointment));
-}
-
-export async function POST(req: Request) {
-  const auth = await requireAdminFromRequest();
-  if (auth instanceof NextResponse) return auth;
-
-  try {
-    const body = await req.json();
-    const validatedData = appointmentSchema.parse(body);
-
-    const patientName = validatedData.patientName?.trim() || "Patient";
-    const patientPhone = (validatedData.patientPhone ?? validatedData.phone ?? "").trim();
-    const reservationDate = validatedData.scheduledAt
-      ? new Date(validatedData.scheduledAt)
-      : validatedData.date
-        ? new Date(validatedData.date)
-        : new Date();
-
-    const normalizedStatus = normalizeStatus(validatedData.status ?? "PENDING");
-
-    const data = await prisma.appointment.create({
-      data: {
-        patientName,
-        patientPhone,
-        scheduledAt: reservationDate,
-        notes: validatedData.notes || null,
-        status: normalizedStatus,
-      },
-    });
-
-    return NextResponse.json(serializeAppointment(data), { status: 201 });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
-    }
-
-    return NextResponse.json({ error: "Unable to create appointment" }, { status: 500 });
-  }
+  return NextResponse.json(items.map(serialize));
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdminFromRequest();
+  const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
   try {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Missing appointment id" }, { status: 400 });
-
     const body = await req.json();
-    const validatedData = appointmentSchema.partial().parse(body);
-    const status = validatedData.status;
+    const payload = patchSchema.parse(body);
 
-    if (!status) {
-      return NextResponse.json({ error: "Status is required" }, { status: 400 });
-    }
+    const data: Record<string, unknown> = {};
+    if (payload.status !== undefined) data.status = payload.status;
+    if (payload.doctorId !== undefined)
+      data.doctorId = payload.doctorId || null;
+    if (payload.notes !== undefined) data.notes = payload.notes || null;
 
-    const normalizedStatus = normalizeStatus(status);
-
-    const appointment = await prisma.appointment.update({
+    const updated = await prisma.appointment.update({
       where: { id },
-      data: { status: normalizedStatus },
+      data,
+      include: includeDoctor,
     });
 
-    return NextResponse.json(serializeAppointment(appointment));
-  } catch (error: unknown) {
+    return NextResponse.json(serialize(updated));
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
-
-    return NextResponse.json({ error: "Unable to update appointment" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to update appointment" },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdminFromRequest();
+  const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing appointment id" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   await prisma.appointment.delete({ where: { id } }).catch(() => null);
   return NextResponse.json({ ok: true });

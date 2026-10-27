@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
 import { PageHeader } from "@/components/website/PageHeader";
 import { GalleryGrid } from "@/components/website/GalleryGrid";
-import { galleryServices } from "@/data/mock/gallery";
+import { getPublishedGalleryAlbums } from "@/lib/services/gallery";
 import { locales, type Locale } from "@/lib/i18n";
 import {
   buildMetadata,
@@ -11,8 +11,11 @@ import {
   buildBreadcrumbSchema,
 } from "@/data/seo";
 
+// يضمن قراءة الصفحة من قاعدة البيانات في كل زيارة (مؤقتًا أثناء التطوير)
+export const dynamic = "force-dynamic";
+
 /* ═══════════════════════════════════════════════════
-   SEO — كل شيء من src/data/seo.ts
+   SEO
    ═══════════════════════════════════════════════════ */
 
 export async function generateMetadata({
@@ -47,16 +50,15 @@ export default async function GalleryPage({
 
   const isArabic = safeLocale === "ar";
 
-  /* ═══════════════════════════════════════════════════
-     JSON-LD — Auto (Organization/WebSite/CollectionPage) + Breadcrumb
-     ═══════════════════════════════════════════════════ */
-
   const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
     { name: isArabic ? "الرئيسية" : "Home", path: "" },
     { name: isArabic ? "المعرض" : "Gallery", path: "gallery" },
   ]);
 
   const jsonLdBlocks = buildPageJsonLd("gallery", safeLocale, [breadcrumbLd]);
+
+  // ← من قاعدة البيانات بدلًا من الـ mock
+  const albums = await getPublishedGalleryAlbums();
 
   return (
     <main
@@ -93,10 +95,18 @@ export default async function GalleryPage({
         />
 
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <GalleryGrid
-            services={galleryServices}
-            locale={safeLocale as "ar" | "en"}
-          />
+          {albums.length > 0 ? (
+            <GalleryGrid
+              services={albums}
+              locale={safeLocale as "ar" | "en"}
+            />
+          ) : (
+            <div className="text-center py-16 text-sm text-gray-500">
+              {isArabic
+                ? "لا توجد صور في المعرض حاليًا."
+                : "No gallery images available yet."}
+            </div>
+          )}
         </section>
       </div>
     </main>

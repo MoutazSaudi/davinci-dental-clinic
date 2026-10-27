@@ -60,16 +60,20 @@ export default async function AboutPage({
   const isArabic = safeLocale === "ar";
   const L = safeLocale as "ar" | "en";
 
-  const doctors = doctorCatalog.map((d) => ({
-    name: d.name,
+const doctors = doctorCatalog.map((d) => {
+  const displayName = d.name[L];
+  return {
+    name: displayName,
     specialty: d.specialization[L],
-    initials: d.name
+    initials: displayName
       .split(" ")
+      .filter(Boolean)
       .map((p) => p[0])
       .slice(0, 2)
       .join("")
       .toUpperCase(),
-  }));
+  };
+});
 
   const aboutContent = {
     eyebrow: isArabic ? "عن العيادة" : "About the clinic",

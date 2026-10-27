@@ -4,7 +4,7 @@
  *
  *   pnpm db:seed
  *
- * Required env: SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD (min 10 chars)
+ * Required env: SEED_ADMIN_PASSWORD (min 10 chars). Optional: SEED_ADMIN_USERNAME (default: "admin").
  */
 import { Prisma, PrismaClient } from "@prisma/client";
 import servicesRichRaw from "../src/data/mock/services-rich.json";
@@ -21,32 +21,28 @@ type RichByLocale = Record<string, Partial<Record<"ar" | "en", unknown>>>;
 const servicesRich = servicesRichRaw as unknown as RichByLocale;
 
 async function seedAdmin() {
-  const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
-  const username = process.env.SEED_ADMIN_USERNAME?.trim().toLowerCase() || email?.split("@")[0]?.trim() || "admin";
+  const username =
+    process.env.SEED_ADMIN_USERNAME?.trim().toLowerCase() || "admin";
   const password = process.env.SEED_ADMIN_PASSWORD;
 
-  if (!email || !password) {
-    throw new Error("Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env before seeding.");
-  }
-  if (!username) {
-    throw new Error("SEED_ADMIN_USERNAME must not be empty when seeding the admin user.");
+  if (!password) {
+    throw new Error("Set SEED_ADMIN_PASSWORD in .env before seeding.");
   }
   if (password.length < 10) {
     throw new Error("SEED_ADMIN_PASSWORD must be at least 10 characters.");
   }
 
   await prisma.adminUser.upsert({
-    where: { email },
-    update: { username },
+    where: { username },
+    update: {},
     create: {
-      email,
       username,
       name: "Admin",
       role: "ADMIN",
       passwordHash: createPasswordRecord(password),
     },
   });
-  console.log(`Admin user ready: ${username} (${email})`);
+  console.log(`Admin user ready: ${username}`);
 }
 
 async function seedServices() {
@@ -65,7 +61,10 @@ async function seedServices() {
         slug,
         sortOrder: catOrder++,
         translations: {
-          create: LOCALES.map((locale) => ({ locale, name: s.category[locale] })),
+          create: LOCALES.map((locale) => ({
+            locale,
+            name: s.category[locale],
+          })),
         },
       },
     });
@@ -95,13 +94,17 @@ async function seedServices() {
             shortDescription: s.shortDescription[locale],
             description: s.description[locale],
             highlights: s.highlight[locale],
-            rich: rich?.[locale] ? (rich[locale] as Prisma.InputJsonValue) : Prisma.DbNull,
+            rich: rich?.[locale]
+              ? (rich[locale] as Prisma.InputJsonValue)
+              : Prisma.DbNull,
           })),
         },
       },
     });
   }
-  console.log(`Services: ${serviceCatalog.length}, categories: ${categoryIds.size}`);
+  console.log(
+    `Services: ${serviceCatalog.length}, categories: ${categoryIds.size}`,
+  );
 }
 
 async function seedDoctors() {
@@ -123,7 +126,7 @@ async function seedDoctors() {
             locale,
             // The mock data only has one (Arabic) name; it is used for both languages
             // until an English name is entered from the dashboard.
-            name: d.name,
+            name: d.name[locale],
             specialization: d.specialization[locale],
             bio: d.bio[locale],
           })),
@@ -163,7 +166,9 @@ async function seedFaq() {
 async function seedGallery() {
   let order = 0;
   for (const g of galleryServices) {
-    const exists = await prisma.galleryAlbum.findUnique({ where: { slug: g.slug } });
+    const exists = await prisma.galleryAlbum.findUnique({
+      where: { slug: g.slug },
+    });
     if (exists) {
       order++;
       continue;

@@ -1,248 +1,369 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import AdminTable from "@/components/admin/AdminTable";
-import { DynamicForm, FormFieldConfig } from "@/components/admin/DynamicForm";
-import { z } from "zod";
+import {
+  AppointmentAdmin,
+  AppointmentStatus,
+  DoctorOption,
+  STATUS_LABEL,
+  STATUS_STYLES,
+  formatDateTime,
+} from "./types";
 
-// 1. Validation Schema for Appointments
-export const appointmentSchema = z.object({
-  patientName: z.string().min(2, "Patient name is required"),
-  phone: z.string().min(6, "Phone number is required"),
-  service: z.string().min(2, "Service is required"),
-  date: z.string().min(1, "Date and time are required"),
-  status: z.enum(["pending", "confirmed", "cancelled"], {
-    required_error: "Status is required",
-  }),
-});
-
-export type AppointmentFormValues = z.infer<typeof appointmentSchema>;
-
-export interface AppointmentItem extends AppointmentFormValues {
-  id: string;
-}
-
-// 2. Field Configuration for DynamicForm
-const appointmentFields: FormFieldConfig<AppointmentFormValues>[] = [
-  { name: "patientName", label: "Patient Name", type: "text", placeholder: "Enter patient name" },
-  { name: "phone", label: "Phone Number", type: "text", placeholder: "e.g. +963..." },
-  { name: "service", label: "Service", type: "text", placeholder: "e.g. Orthodontics" },
-  { name: "date", label: "Date & Time", type: "text", placeholder: "e.g. Oct 1, 2026 - 10:00 AM" },
-  {
-    name: "status",
-    label: "Status",
-    type: "select",
-    options: [
-      { label: "Pending", value: "pending" },
-      { label: "Confirmed", value: "confirmed" },
-      { label: "Cancelled", value: "cancelled" },
-    ],
-  },
-];
-
-export default function AppointmentsAdminClient({ initial }: { initial: AppointmentItem[] }) {
-  const [items, setItems] = useState<AppointmentItem[]>(initial || []);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<AppointmentItem | null>(null);
+export default function AppointmentsAdminClient() {
+  const [items, setItems] = useState<AppointmentAdmin[]>([]);
+  const [doctors, setDoctors] = useState<DoctorOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<AppointmentAdmin | null>(null);
 
   useEffect(() => {
-    setItems(initial || []);
-  }, [initial]);
+    void bootstrap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function bootstrap() {
+    setLoading(true);
+    await Promise.all([refresh(), loadDoctors()]);
+    setLoading(false);
+  }
 
   async function refresh() {
     const res = await fetch("/api/admin/appointments");
     const data = await res.json();
-    setItems(data || []);
+    setItems(Array.isArray(data) ? data : []);
   }
 
-  async function handleStatusChange(id: string, newStatus: AppointmentItem["status"]) {
-    await fetch(`/api/admin/appointments?id=${encodeURIComponent(id)}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: newStatus }),
-      headers: { "Content-Type": "application/json" },
-    });
-    await refresh();
+  async function loadDoctors() {
+    const res = await fetch("/api/admin/doctors");
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      setDoctors(
+        data.map((d: { id: string; slug: string; name: { en: string; ar: string } }) => ({
+          id: d.id,
+          slug: d.slug,
+          name: d.name,
+        }))
+      );
+    }
+  }
+
+  async function patch(id: string, body: Record<string, unknown>) {
+    setBusyId(id);
+    try {
+      const res = await fetch(
+        `/api/admin/appointments?id=${encodeURIComponent(id)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      if (res.ok) await refresh();
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this appointment?")) return;
+    if (!confirm("Delete this appointment?")) return;
     await fetch(`/api/admin/appointments?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
     await refresh();
   }
 
-  async function handleSubmitForm(data: AppointmentFormValues) {
-    if (editingItem) {
-      await fetch(`/api/admin/appointments?id=${encodeURIComponent(editingItem.id)}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
-    } else {
-      await fetch("/api/admin/appointments", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    setIsModalOpen(false);
-    setEditingItem(null);
-    await refresh();
-  }
-
-  function openCreateModal() {
-    setEditingItem(null);
-    setIsModalOpen(true);
-  }
-
-  function openEditModal(item: AppointmentItem) {
-    setEditingItem(item);
-    setIsModalOpen(true);
-  }
+  const stats = useMemo(() => {
+    const total = items.length;
+    const pending = items.filter((i) => i.status === "PENDING").length;
+    const confirmed = items.filter((i) => i.status === "CONFIRMED").length;
+    const today = items.filter((i) => {
+      const d = new Date(i.scheduledAt);
+      const now = new Date();
+      return (
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate()
+      );
+    }).length;
+    return { total, pending, confirmed, today };
+  }, [items]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold" style={{ color: "var(--color-primary)" }}>
-            Appointments
-          </h2>
-          <p className="text-sm" style={{ color: "var(--color-foreground-muted)" }}>
-            Total appointments: {items.length}
-          </p>
-        </div>
-
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition-colors"
+      {/* Header */}
+      <div>
+        <h1
+          className="text-3xl font-bold tracking-tight"
+          style={{ color: "var(--color-primary)" }}
         >
-          + Add Appointment
-        </button>
+          Appointments
+        </h1>
+        <p
+          className="text-sm mt-1"
+          style={{ color: "var(--color-foreground-muted)" }}
+        >
+          Manage patient bookings and assign doctors.
+        </p>
       </div>
 
-      <AdminTable<AppointmentItem>
-        items={items}
-        pageSize={8}
-        emptyMessage="No appointments found."
-        headers={
-          <tr>
-            <th className="p-3 text-left">Patient Name</th>
-            <th className="p-3 text-left">Phone</th>
-            <th className="p-3 text-left">Service</th>
-            <th className="p-3 text-left">Date</th>
-            <th className="p-3 text-left">Status</th>
-            <th className="p-3 text-left">Actions</th>
-          </tr>
-        }
-        renderRow={(item) => (
-          <>
-            <td className="p-3 align-middle font-medium" style={{ color: "var(--color-foreground)" }}>
-              {item.patientName}
-            </td>
-            <td className="p-3 align-middle" style={{ color: "var(--color-foreground-muted)" }}>
-              {item.phone}
-            </td>
-            <td className="p-3 align-middle" style={{ color: "var(--color-foreground)" }}>
-              {item.service}
-            </td>
-            <td className="p-3 align-middle text-xs" style={{ color: "var(--color-foreground-muted)" }}>
-              {item.date}
-            </td>
-            <td className="p-3 align-middle">
-              <span
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
-                  item.status === "confirmed"
-                    ? "bg-green-100 text-green-700"
-                    : item.status === "cancelled"
-                    ? "bg-red-100 text-red-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}
-              >
-                {item.status}
-              </span>
-            </td>
-            <td className="p-3 align-middle">
-              <div className="flex items-center gap-2">
-                <select
-                  value={item.status}
-                  onChange={(e) =>
-                    handleStatusChange(item.id, e.target.value as AppointmentItem["status"])
-                  }
-                  className="py-1 px-2 border rounded-md text-xs outline-none"
-                  style={{
-                    borderColor: "var(--color-border)",
-                    backgroundColor: "var(--color-background)",
-                    color: "var(--color-foreground)",
-                  }}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Total" value={stats.total} />
+        <StatCard label="Pending" value={stats.pending} />
+        <StatCard label="Confirmed" value={stats.confirmed} />
+        <StatCard label="Today" value={stats.today} />
+      </div>
 
-                <button
-                  onClick={() => openEditModal(item)}
-                  className="py-1 px-2 text-blue-600 border border-blue-200 rounded-md text-xs hover:bg-blue-50 transition-colors"
-                >
-                  Edit
-                </button>
+      {/* Table */}
+      {loading ? (
+        <div className="rounded-xl border p-8 text-center text-sm text-gray-500">
+          Loading appointments…
+        </div>
+      ) : (
+        <AdminTable<AppointmentAdmin>
+          items={items}
+          pageSize={8}
+          emptyMessage="No appointment requests yet."
+          headers={
+            <tr>
+              <th className="p-3 text-left">Patient</th>
+              <th className="p-3 text-left">Scheduled</th>
+              <th className="p-3 text-left">Doctor</th>
+              <th className="p-3 text-left">Service</th>
+              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Actions</th>
+            </tr>
+          }
+          renderRow={(item) => {
+            const busy = busyId === item.id;
+            return (
+              <>
+                <td className="p-3 align-middle">
+                  <div
+                    className="font-medium text-sm"
+                    style={{ color: "var(--color-foreground)" }}
+                  >
+                    {item.patientName}
+                  </div>
+                  <div
+                    className="text-xs mt-0.5"
+                    style={{ color: "var(--color-foreground-muted)" }}
+                  >
+                    {item.patientPhone}
+                  </div>
+                  {item.patientEmail && (
+                    <div
+                      className="text-xs"
+                      style={{ color: "var(--color-foreground-muted)" }}
+                    >
+                      {item.patientEmail}
+                    </div>
+                  )}
+                </td>
 
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="py-1 px-2 text-red-600 border border-red-200 rounded-md text-xs hover:bg-red-50 transition-colors"
+                <td
+                  className="p-3 align-middle text-xs"
+                  style={{ color: "var(--color-foreground)" }}
                 >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </>
-        )}
-      />
+                  {formatDateTime(item.scheduledAt, "en")}
+                </td>
 
-      {/* Modal for Create/Edit */}
-      {isModalOpen && (
+                <td className="p-3 align-middle">
+                  <select
+                    value={item.doctor?.id ?? ""}
+                    onChange={(e) =>
+                      patch(item.id, { doctorId: e.target.value || null })
+                    }
+                    disabled={busy}
+                    className="py-1 px-2 border rounded-md text-xs outline-none w-full max-w-[180px]"
+                    style={{
+                      borderColor: "var(--color-border)",
+                      backgroundColor: "var(--color-background)",
+                      color: "var(--color-foreground)",
+                    }}
+                  >
+                    <option value="">— Unassigned —</option>
+                    {doctors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name.en}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+
+                <td
+                  className="p-3 align-middle text-xs"
+                  style={{ color: "var(--color-foreground-muted)" }}
+                >
+                  {item.serviceSlug || "—"}
+                </td>
+
+                <td className="p-3 align-middle">
+                  <select
+                    value={item.status}
+                    onChange={(e) =>
+                      patch(item.id, {
+                        status: e.target.value as AppointmentStatus,
+                      })
+                    }
+                    disabled={busy}
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold outline-none border-0 ${
+                      STATUS_STYLES[item.status]
+                    }`}
+                  >
+                    {(Object.keys(STATUS_LABEL) as AppointmentStatus[]).map(
+                      (s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABEL[s]}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </td>
+
+                <td className="p-3 align-middle">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setDetail(item)}
+                      className="py-1.5 px-3 border rounded-md text-xs font-medium hover:bg-[var(--color-background-soft)] transition-colors"
+                      style={{
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-foreground)",
+                      }}
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="py-1.5 px-3 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </>
+            );
+          }}
+        />
+      )}
+
+      {/* Detail modal */}
+      {detail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl relative border border-gray-100 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl relative">
             <div className="flex items-center justify-between mb-4 border-b pb-3">
-              <h3 className="text-lg font-bold text-gray-800">
-                {editingItem ? "Edit Appointment" : "Add New Appointment"}
-              </h3>
+              <h3 className="text-lg font-bold">Appointment details</h3>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-lg font-bold"
+                onClick={() => setDetail(null)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
               >
                 ✕
               </button>
             </div>
 
-            <DynamicForm<AppointmentFormValues>
-              schema={appointmentSchema}
-              fields={appointmentFields}
-              defaultValues={
-                editingItem
-                  ? {
-                      patientName: editingItem.patientName,
-                      phone: editingItem.phone,
-                      service: editingItem.service,
-                      date: editingItem.date,
-                      status: editingItem.status,
-                    }
-                  : {
-                      patientName: "",
-                      phone: "",
-                      service: "",
-                      date: "",
-                      status: "pending",
-                    }
-              }
-              onSubmit={handleSubmitForm}
-              submitLabel={editingItem ? "Save Changes" : "Add Appointment"}
-            />
+            <dl className="space-y-3 text-sm">
+              <Row label="Patient" value={detail.patientName} />
+              <Row label="Phone" value={detail.patientPhone} />
+              <Row label="Email" value={detail.patientEmail || "—"} />
+              <Row
+                label="Scheduled"
+                value={formatDateTime(detail.scheduledAt, "en")}
+              />
+              <Row
+                label="Doctor"
+                value={detail.doctor?.name.en ?? "Unassigned"}
+              />
+              <Row label="Service" value={detail.serviceSlug || "—"} />
+              <Row
+                label="Status"
+                value={
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      STATUS_STYLES[detail.status]
+                    }`}
+                  >
+                    {STATUS_LABEL[detail.status]}
+                  </span>
+                }
+              />
+              <Row
+                label="Notes"
+                value={
+                  <span className="whitespace-pre-wrap">
+                    {detail.notes || "—"}
+                  </span>
+                }
+              />
+              <Row
+                label="Created"
+                value={formatDateTime(detail.createdAt, "en")}
+              />
+            </dl>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setDetail(null)}
+                className="py-2 px-4 text-white rounded-lg text-sm font-medium"
+                style={{ backgroundColor: "var(--color-primary)" }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div
+      className="rounded-xl border p-4"
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-border)",
+      }}
+    >
+      <div
+        className="text-xs uppercase tracking-wide"
+        style={{ color: "var(--color-foreground-muted)" }}
+      >
+        {label}
+      </div>
+      <div
+        className="text-2xl font-bold mt-1"
+        style={{ color: "var(--color-foreground)" }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <dt
+        className="w-28 shrink-0 text-xs font-medium uppercase tracking-wide"
+        style={{ color: "var(--color-foreground-muted)" }}
+      >
+        {label}
+      </dt>
+      <dd
+        className="flex-1"
+        style={{ color: "var(--color-foreground)" }}
+      >
+        {value}
+      </dd>
     </div>
   );
 }

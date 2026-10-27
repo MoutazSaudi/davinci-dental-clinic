@@ -21,7 +21,6 @@ export type AdminRole = "ADMIN" | "EDITOR";
 
 export type AdminSession = {
   uid: string;
-  email: string;
   role: AdminRole;
   iat: number;
 };
@@ -77,7 +76,6 @@ export function verifySession(token: string | undefined): AdminSession | null {
 
     if (
       typeof data.uid !== "string" ||
-      typeof data.email !== "string" ||
       (data.role !== "ADMIN" && data.role !== "EDITOR") ||
       typeof data.iat !== "number"
     ) {
@@ -94,7 +92,7 @@ export function verifySession(token: string | undefined): AdminSession | null {
 
 export async function getAdminSession(): Promise<AdminSession | null> {
   if (!isAdminAuthEnabled()) {
-    return { uid: "dev", email: "dev@localhost", role: "ADMIN", iat: Date.now() };
+    return { uid: "dev", role: "ADMIN", iat: Date.now() };
   }
 
   const ck = await cookies();

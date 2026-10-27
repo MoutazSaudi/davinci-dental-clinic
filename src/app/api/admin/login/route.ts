@@ -115,7 +115,6 @@ export async function POST(req: Request) {
     name: sessionCookieName(),
     value: signSession({
       uid: user.id,
-      email: user.email,
       role: user.role,
     }),
     httpOnly: true,

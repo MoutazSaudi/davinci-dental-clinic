@@ -6,12 +6,23 @@ import { PageHeader } from "@/components/website/PageHeader";
 import { clinicContactData } from "@/data/site";
 import { locales, type Locale } from "@/lib/i18n";
 import {
+  getDoctorsForSelect,
+  getServicesForSelect,
+} from "@/lib/services/select";
+import {
   buildMetadata,
   buildPageJsonLd,
   buildBreadcrumbSchema,
   seoDefaults,
   geoData,
 } from "@/data/seo";
+
+/* ═══════════════════════════════════════════════════
+   Force dynamic — so new doctors/services appear
+   immediately after admin changes
+   ═══════════════════════════════════════════════════ */
+
+export const dynamic = "force-dynamic";
 
 /* ═══════════════════════════════════════════════════
    Derived numbers — single source of truth: seo.ts
@@ -46,10 +57,13 @@ export function generateStaticParams() {
 
 export default async function ContactPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ doctor?: string; service?: string }>;
 }) {
   const { locale } = await params;
+  const sp = await searchParams;
   const safeLocale = locale === "ar" ? "ar" : "en";
 
   if (!locales.includes(safeLocale as Locale)) {
@@ -58,6 +72,18 @@ export default async function ContactPage({
 
   const isArabic = safeLocale === "ar";
   const L = safeLocale as "ar" | "en";
+
+  /* ═══════════════════════════════════════════════════
+     Prefill from URL + fetch doctors/services
+     ═══════════════════════════════════════════════════ */
+
+  const initialDoctorSlug = sp?.doctor;
+  const initialServiceSlug = sp?.service;
+
+  const [doctors, services] = await Promise.all([
+    getDoctorsForSelect(),
+    getServicesForSelect(),
+  ]);
 
   /* ═══════════════════════════════════════════════════
      JSON-LD — Auto (Organization/WebSite/ContactPage) + Breadcrumb
@@ -308,6 +334,10 @@ export default async function ContactPage({
               <ContactForm
                 locale={safeLocale as Locale}
                 whatsappNumber={WHATSAPP_NUMBER}
+                doctors={doctors}
+                services={services}
+                initialDoctorSlug={initialDoctorSlug}
+                initialServiceSlug={initialServiceSlug}
               />
             </div>
           </div>

@@ -8,64 +8,79 @@ import prisma from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth";
 
 const doctorSchema = z.object({
-  name: z.string().trim().min(1, "Doctor name is required"),
-  specialty: z.string().trim().min(1, "Specialty is required").optional(),
+  slug: z.string().trim().min(1, "Slug is required"),
+  name: z.object({
+    en: z.string().trim().min(1, "English name is required"),
+    ar: z.string().trim().min(1, "Arabic name is required"),
+  }),
+  specialization: z.object({
+    en: z.string().trim().optional(),
+    ar: z.string().trim().optional(),
+  }),
+  bio: z.object({
+    en: z.string().trim().optional(),
+    ar: z.string().trim().optional(),
+  }),
   image: z.string().trim().optional(),
-  slug: z.string().trim().optional(),
   instagram: z.string().trim().optional(),
   linkedin: z.string().trim().optional(),
+  sortOrder: z.number().int().optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
 });
 
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "") || "doctor";
-
-const getLocaleValue = (items: { locale: string; name: string; specialization: string | null }[], locale: string) => {
-  const item = items.find((entry) => entry.locale === locale) ?? items[0];
-  return item ? { name: item.name, specialization: item.specialization ?? "" } : { name: "", specialization: "" };
-};
-
-const serializeDoctor = (doctor: {
+type DoctorWithRelations = {
   id: string;
   slug: string;
   image: string | null;
   instagram: string | null;
   linkedin: string | null;
-  translations: { locale: string; name: string; specialization: string | null }[];
-}) => {
-  const en = getLocaleValue(doctor.translations, "en");
-  const ar = getLocaleValue(doctor.translations, "ar");
-
-  return {
-    id: doctor.id,
-    slug: doctor.slug,
-    name: en.name || ar.name,
-    specialty: en.specialization || ar.specialization || "",
-    image: doctor.image || "/images/doctors/default-doctor.jpg",
-    instagram: doctor.instagram,
-    linkedin: doctor.linkedin,
-    translations: {
-      en: { name: en.name, specialization: en.specialization },
-      ar: { name: ar.name, specialization: ar.specialization },
-    },
-  };
+  sortOrder: number;
+  status: string;
+  translations: Array<{
+    locale: string;
+    name: string;
+    specialization: string | null;
+    bio: string | null;
+  }>;
 };
 
-export async function GET(req: Request) {
+function serialize(d: DoctorWithRelations) {
+  const en = d.translations.find((t) => t.locale === "en");
+  const ar = d.translations.find((t) => t.locale === "ar");
+  return {
+    id: d.id,
+    slug: d.slug,
+    name: { en: en?.name ?? "", ar: ar?.name ?? "" },
+    specialization: {
+      en: en?.specialization ?? "",
+      ar: ar?.specialization ?? "",
+    },
+    bio: { en: en?.bio ?? "", ar: ar?.bio ?? "" },
+    image: d.image,
+    instagram: d.instagram,
+    linkedin: d.linkedin,
+    sortOrder: d.sortOrder,
+    status: d.status,
+  };
+}
+
+const includeAll = { translations: true };
+
+function revalidateDoctors() {
+  revalidatePath("/ar/doctors");
+  revalidatePath("/en/doctors");
+}
+
+export async function GET() {
   const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
   const doctors = await prisma.doctor.findMany({
-    include: { translations: true },
+    include: includeAll,
     orderBy: { sortOrder: "asc" },
   });
 
-  return NextResponse.json(doctors.map(serializeDoctor));
+  return NextResponse.json(doctors.map(serialize));
 }
 
 export async function POST(req: Request) {
@@ -74,35 +89,49 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const payload = doctorSchema.parse(body);
-    const doctorName = payload.name.trim();
-    const slug = payload.slug?.trim() || slugify(doctorName);
-    const specialty = payload.specialty?.trim() || "General Dentist";
+    const p = doctorSchema.parse(body);
 
     const doctor = await prisma.doctor.create({
       data: {
-        slug,
-        image: payload.image || null,
-        instagram: payload.instagram || null,
-        linkedin: payload.linkedin || null,
+        slug: p.slug,
+        image: p.image || null,
+        instagram: p.instagram || null,
+        linkedin: p.linkedin || null,
+        sortOrder: p.sortOrder ?? 0,
+        status: p.status ?? "PUBLISHED",
         translations: {
           create: [
-            { locale: "en", name: doctorName, specialization: specialty },
-            { locale: "ar", name: doctorName, specialization: specialty },
+            {
+              locale: "en",
+              name: p.name.en,
+              specialization: p.specialization.en || null,
+              bio: p.bio.en || null,
+            },
+            {
+              locale: "ar",
+              name: p.name.ar,
+              specialization: p.specialization.ar || null,
+              bio: p.bio.ar || null,
+            },
           ],
         },
       },
-      include: { translations: true },
+      include: includeAll,
     });
 
-    revalidatePath("/doctors");
-    return NextResponse.json(serializeDoctor(doctor), { status: 201 });
+    revalidateDoctors();
+    return NextResponse.json(serialize(doctor), { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json(
+        { error: error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
-
-    return NextResponse.json({ error: "Unable to create doctor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to create doctor" },
+      { status: 500 }
+    );
   }
 }
 
@@ -114,50 +143,71 @@ export async function PUT(req: Request) {
   const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
-  try {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Missing doctor id" }, { status: 400 });
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
+  try {
     const body = await req.json();
-    const payload = doctorSchema.parse(body);
-    const doctorName = payload.name.trim();
-    const slug = payload.slug?.trim() || slugify(doctorName);
-    const specialty = payload.specialty?.trim() || "General Dentist";
+    const p = doctorSchema.parse(body);
 
     const doctor = await prisma.doctor.update({
       where: { id },
       data: {
-        slug,
-        image: payload.image || null,
-        instagram: payload.instagram || null,
-        linkedin: payload.linkedin || null,
+        slug: p.slug,
+        image: p.image || null,
+        instagram: p.instagram || null,
+        linkedin: p.linkedin || null,
+        sortOrder: p.sortOrder ?? 0,
+        status: p.status ?? "PUBLISHED",
         translations: {
           upsert: [
             {
               where: { doctorId_locale: { doctorId: id, locale: "en" } },
-              update: { name: doctorName, specialization: specialty },
-              create: { locale: "en", name: doctorName, specialization: specialty },
+              update: {
+                name: p.name.en,
+                specialization: p.specialization.en || null,
+                bio: p.bio.en || null,
+              },
+              create: {
+                locale: "en",
+                name: p.name.en,
+                specialization: p.specialization.en || null,
+                bio: p.bio.en || null,
+              },
             },
             {
               where: { doctorId_locale: { doctorId: id, locale: "ar" } },
-              update: { name: doctorName, specialization: specialty },
-              create: { locale: "ar", name: doctorName, specialization: specialty },
+              update: {
+                name: p.name.ar,
+                specialization: p.specialization.ar || null,
+                bio: p.bio.ar || null,
+              },
+              create: {
+                locale: "ar",
+                name: p.name.ar,
+                specialization: p.specialization.ar || null,
+                bio: p.bio.ar || null,
+              },
             },
           ],
         },
       },
-      include: { translations: true },
+      include: includeAll,
     });
 
-    revalidatePath("/doctors");
-    return NextResponse.json(serializeDoctor(doctor));
+    revalidateDoctors();
+    return NextResponse.json(serialize(doctor));
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json(
+        { error: error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
-
-    return NextResponse.json({ error: "Unable to update doctor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to update doctor" },
+      { status: 500 }
+    );
   }
 }
 
@@ -166,9 +216,9 @@ export async function DELETE(req: Request) {
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing doctor id" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   await prisma.doctor.delete({ where: { id } }).catch(() => null);
-  revalidatePath("/doctors");
+  revalidateDoctors();
   return NextResponse.json({ ok: true });
 }

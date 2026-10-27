@@ -4,96 +4,98 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminFromRequest } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth";
 
-const contactSchema = z.object({
-  name: z.string().trim().min(2, "الاسم مطلوب"),
-  email: z.string().trim().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
-  phone: z.string().trim().optional(),
-  message: z.string().trim().min(5, "الرسالة قصيرة جداً"),
-  locale: z.string().trim().default("ar"),
-  serviceSlug: z.string().trim().optional(),
-});
-
-const patchMessageSchema = z.object({
+const patchSchema = z.object({
   status: z.enum(["NEW", "READ", "REPLIED", "ARCHIVED"]).optional(),
+  adminNotes: z.string().nullable().optional(),
 });
 
-export async function GET(req: Request) {
-  const auth = await requireAdminFromRequest();
+type MessageRow = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  message: string;
+  source: string;
+  serviceSlug: string | null;
+  locale: string;
+  status: string;
+  adminNotes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function serialize(m: MessageRow) {
+  return {
+    id: m.id,
+    name: m.name,
+    phone: m.phone,
+    email: m.email,
+    message: m.message,
+    source: m.source,
+    serviceSlug: m.serviceSlug,
+    locale: m.locale,
+    status: m.status,
+    adminNotes: m.adminNotes,
+    createdAt: m.createdAt.toISOString(),
+    updatedAt: m.updatedAt.toISOString(),
+  };
+}
+
+export async function GET() {
+  const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
   const items = await prisma.contactMessage.findMany({
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(items);
-}
-
-export async function POST(req: Request) {
-  const auth = await requireAdminFromRequest();
-  if (auth instanceof NextResponse) return auth;
-
-  try {
-    const body = await req.json();
-    const validatedData = contactSchema.parse(body);
-
-    const contact = await prisma.contactMessage.create({
-      data: {
-        name: validatedData.name,
-        email: validatedData.email || null,
-        phone: validatedData.phone || "",
-        message: validatedData.message,
-        locale: validatedData.locale || "ar",
-        serviceSlug: validatedData.serviceSlug || null,
-        status: "NEW",
-      },
-    });
-
-    return NextResponse.json({ success: true, data: contact }, { status: 201 });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, errors: error.errors }, { status: 400 });
-    }
-    return NextResponse.json({ success: false, error: "حدث خطأ أثناء حفظ الرسالة" }, { status: 500 });
-  }
+  return NextResponse.json(items.map(serialize));
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdminFromRequest();
+  const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing message id" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   try {
     const body = await req.json();
-    const validatedData = patchMessageSchema.parse(body);
+    const payload = patchSchema.parse(body);
 
-    if (!validatedData.status) {
-      return NextResponse.json({ error: "Status is required" }, { status: 400 });
-    }
+    const data: Record<string, unknown> = {};
+    if (payload.status !== undefined) data.status = payload.status;
+    if (payload.adminNotes !== undefined)
+      data.adminNotes = payload.adminNotes || null;
 
     const updated = await prisma.contactMessage.update({
       where: { id },
-      data: { status: validatedData.status },
+      data,
     });
 
-    return NextResponse.json(updated);
-  } catch (error: unknown) {
+    return NextResponse.json(serialize(updated));
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
-    return NextResponse.json({ error: "Unable to update message" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to update message" },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdminFromRequest();
+  const auth = await requireAdminApi();
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing message id" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   await prisma.contactMessage.delete({ where: { id } }).catch(() => null);
   return NextResponse.json({ ok: true });

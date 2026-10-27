@@ -1021,16 +1021,16 @@ export function getPageContent(locale: Locale) {
     description: s.shortDescription[locale],
   }));
 
-  const doctors = doctorCatalog.map((d) => ({
-    name: d.name,
-    specialty: d.specialization[locale],
-    initials: d.name
-      .split(" ")
-      .map((p) => p[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase(),
-  }));
+const doctors = doctorCatalog.map((d) => ({
+  name: d.name[locale],
+  specialty: d.specialization[locale],
+  initials: d.name[locale]
+    .split(" ")
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join(""),
+}));
 
   return {
     hero: {

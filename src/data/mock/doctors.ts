@@ -2,7 +2,10 @@ import { type Locale } from "./services";
 
 export interface DoctorItem {
   slug: string;
-  name: string;
+  name: {
+    ar: string;
+    en: string;
+  };
   specialization: {
     ar: string;
     en: string;
@@ -20,54 +23,35 @@ export interface DoctorItem {
 
 export const doctorCatalog: DoctorItem[] = [
   {
-    slug: "dr-ahmad-al-ali",
-    name: "د. أحمد العلي",
+    slug: "dr-mouhannad-saudi",
+    image: "/images/doctors/DrMuhanad.jpeg",
+    name: {
+      ar: "د. مهند سعودي",
+      en: "Dr. Mouhannad Saudi",
+    },
     specialization: {
-      ar: "استشاري تقويم الأسنان والفرط جراحي",
-      en: "Orthodontic & Maxillofacial Consultant",
+      ar: "أخصائي تقويم الأسنان، وأخصائي آلام الوجه والفكين والمفصل الفكي الصدغي",
+      en: "Orthodontist and Orofacial Pain & TMJ Specialist",
     },
-    image: "https://davincidental.ae/wp-content/uploads/2023/06/Children-Orthodontics.jpg",
     bio: {
-      ar: "خبير في تصحيح اصطفاف الأسنان ومعالجة مشاكل الإطباق المعقدة لدى الأطفال والكبار بأحدث الأساليب.",
-      en: "Expert in correcting teeth alignment and treating complex bite issues for children and adults using modern techniques.",
-    },
-    social: {
-      instagram: "https://instagram.com",
-      linkedin: "https://linkedin.com",
+      ar: "حصل على شهادة الاختصاص في آلام الوجه والمفصل الفكي الصدغي من جامعة جنوب كاليفورنيا (USC)، الولايات المتحدة. يهتم هذا التخصص بالآلام العصبية والعضلية في منطقة الوجه، والمفصل الفكي الصدغي، والصداع، وآلام الأذن، ومشاكل توقف التنفس أثناء النوم.",
+      en: "Received a specialized diploma in Orofacial Pain and TMJ from the University of Southern California (USC), USA. This specialty focuses on neuromuscular pain in the facial region, TMJ disorders, headaches, ear pain, and sleep apnea.",
     },
   },
   {
-    slug: "dr-sara-mahmoud",
-    name: "د. سارة محمود",
+    slug: "dr-marwan-qattan",
+    image: "/images/doctors/DrMroan.jpeg",
+    name: {
+      ar: "د. مروان قطان",
+      en: "Dr. Marwan Qattan",
+    },
     specialization: {
-      ar: "أخصائية تجميل الأسنان وابتسامة هوليود",
-      en: "Aesthetic Dentistry & Hollywood Smile Specialist",
+      ar: "زميل الكلية الأميركية لزراعة الأسنان منذ عام ١٩٩٨",
+      en: "Fellow of the American College of Oral Implantology since 1998",
     },
-    image: "https://davincidental.ae/wp-content/uploads/2017/09/Dental-Veneers.jpg",
     bio: {
-      ar: "متخصصة في تصميم الابتسامات الرقمية، وتجميل الأسنان بالفينير واللومينير لضمان مظهر طبيعي وجذاب.",
-      en: "Specialized in digital smile design, veneers, and lumineers to ensure a natural and attractive appearance.",
-    },
-    social: {
-      instagram: "https://instagram.com",
-      linkedin: "https://linkedin.com",
-    },
-  },
-  {
-    slug: "dr-mohammed-khalid",
-    name: "د. محمد خالد",
-    specialization: {
-      ar: "استشاري جراحة الفم وزراعة الأسنان",
-      en: "Oral Surgery & Dental Implant Consultant",
-    },
-    image: "https://davincidental.ae/wp-content/uploads/2017/09/Dental-Implant-Surgery.jpg",
-    bio: {
-      ar: "خبرة واسعة في عمليات زراعة الأسنان المتقدمة والتعويضات الثابتة بأعلى معايير الأمان والجودة.",
-      en: "Extensive experience in advanced dental implant surgeries and fixed prosthetics with the highest safety standards.",
-    },
-    social: {
-      instagram: "https://instagram.com",
-      linkedin: "https://linkedin.com",
+      ar: "زميل الكلية الأميركية لزراعة الأسنان منذ عام ١٩٩٨، متخصص في زراعة الأسنان والتعويضات السنية المتقدمة.",
+      en: "Fellow of the American College of Oral Implantology since 1998, specialized in dental implants and advanced prosthodontics.",
     },
   },
 ];

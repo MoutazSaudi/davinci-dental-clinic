@@ -1,123 +1,173 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import AdminTable from "@/components/admin/AdminTable";
-import AdminModal from "@/components/admin/AdminModal";
-import AdminForm from "@/components/admin/AdminForm";
+import { GalleryAlbum, STATUS_LABEL } from "./types";
+import GalleryForm from "./GalleryForm";
 
-export interface GalleryItem {
-  id: string;
-  title: string;
-  category: string;
-  image: string;
-}
-
-export default function GalleryAdminClient({ initial }: { initial: GalleryItem[] }) {
-  const [items, setItems] = useState<GalleryItem[]>(initial || []);
-  const [selected, setSelected] = useState<GalleryItem | null>(null);
+export default function GalleryAdminClient({
+  initial,
+}: {
+  initial: GalleryAlbum[];
+}) {
+  const [items, setItems] = useState<GalleryAlbum[]>(initial || []);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<GalleryAlbum | null>(null);
 
   useEffect(() => {
-    setItems(initial || []);
-  }, [initial]);
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function refresh() {
     const res = await fetch("/api/admin/gallery");
     const data = await res.json();
-    setItems(data || []);
+    setItems(Array.isArray(data) ? data : []);
   }
 
-  async function handleCreate(data: any) {
-    await fetch("/api/admin/gallery", {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" },
-    });
-    setOpen(false);
-    await refresh();
+  function openCreate() {
+    setEditing(null);
+    setOpen(true);
   }
 
-  async function handleUpdate(data: any) {
-    await fetch(`/api/admin/gallery?id=${encodeURIComponent(selected?.id || "")}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" },
-    });
-    setSelected(null);
+  function openEdit(item: GalleryAlbum) {
+    setEditing(item);
+    setOpen(true);
+  }
+
+  async function handleSaved() {
     setOpen(false);
+    setEditing(null);
     await refresh();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this gallery item?")) return;
+    if (!confirm("Delete this album and all its images?")) return;
     await fetch(`/api/admin/gallery?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
     await refresh();
   }
 
-  // تحويل عنصر المعرض إلى شكل يتوافق مع متطلبات AdminForm لتجنب خطأ الـ TypeScript
-  const formInitialData = selected
-    ? {
-        slug: selected.id,
-        title: { en: selected.title },
-        category: { en: selected.category },
-        image: selected.image,
-      }
-    : null;
+  const stats = useMemo(
+    () => ({
+      total: items.length,
+      published: items.filter((a) => a.status === "PUBLISHED").length,
+      images: items.reduce((sum, a) => sum + a.images.length, 0),
+    }),
+    [items]
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold" style={{ color: "var(--color-primary)" }}>Gallery</h2>
-          <p className="text-sm" style={{ color: "var(--color-foreground-muted)" }}>Total gallery items: {items.length}</p>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ color: "var(--color-primary)" }}
+          >
+            Gallery
+          </h1>
+          <p
+            className="text-sm mt-1"
+            style={{ color: "var(--color-foreground-muted)" }}
+          >
+            Manage albums and case images shown on the website.
+          </p>
         </div>
         <button
-          onClick={() => {
-            setSelected(null);
-            setOpen(true);
-          }}
-          className="py-2 px-4 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+          onClick={openCreate}
+          className="shrink-0 py-2 px-4 text-white font-medium rounded-lg hover:opacity-90 transition-opacity shadow-sm"
           style={{ backgroundColor: "var(--color-primary)" }}
         >
-          New Gallery Item
+          + New Album
         </button>
       </div>
 
-      <AdminTable<GalleryItem>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <StatCard label="Total Albums" value={stats.total} />
+        <StatCard label="Published" value={stats.published} />
+        <StatCard label="Total Images" value={stats.images} />
+      </div>
+
+      {/* Table */}
+      <AdminTable<GalleryAlbum>
         items={items}
         pageSize={8}
-        emptyMessage="No gallery items found."
+        emptyMessage="No gallery albums yet. Create your first album to get started."
         headers={
           <tr>
-            <th className="p-3 text-left">Image</th>
-            <th className="p-3 text-left">Title</th>
+            <th className="p-3 text-left">Cover</th>
+            <th className="p-3 text-left">Album</th>
             <th className="p-3 text-left">Category</th>
+            <th className="p-3 text-left">Images</th>
+            <th className="p-3 text-left">Status</th>
             <th className="p-3 text-left">Actions</th>
           </tr>
         }
         renderRow={(item) => (
           <>
             <td className="p-3 align-middle">
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-20 h-12 object-cover rounded border"
-                style={{ borderColor: "var(--color-border)" }}
-              />
+              {item.images[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.images[0]}
+                  alt={item.title.en}
+                  className="w-20 aspect-[4/3] object-cover rounded-md border"
+                  style={{ borderColor: "var(--color-border)" }}
+                />
+              ) : (
+                <div
+                  className="w-20 aspect-[4/3] rounded-md border flex items-center justify-center text-xs"
+                  style={{
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-foreground-muted)",
+                  }}
+                >
+                  no image
+                </div>
+              )}
             </td>
-            <td className="p-3 align-middle font-medium" style={{ color: "var(--color-foreground)" }}>{item.title}</td>
-            <td className="p-3 align-middle" style={{ color: "var(--color-foreground-muted)" }}>{item.category}</td>
+            <td className="p-3 align-middle">
+              <div
+                className="font-medium text-sm"
+                style={{ color: "var(--color-foreground)" }}
+              >
+                {item.title.en}
+              </div>
+              <div
+                className="font-mono text-xs mt-0.5"
+                style={{ color: "var(--color-foreground-muted)" }}
+              >
+                {item.slug}
+              </div>
+            </td>
+            <td
+              className="p-3 align-middle text-sm"
+              style={{ color: "var(--color-foreground-muted)" }}
+            >
+              {item.category.en}
+            </td>
+            <td
+              className="p-3 align-middle text-sm"
+              style={{ color: "var(--color-foreground-muted)" }}
+            >
+              {item.images.length}
+            </td>
+            <td className="p-3 align-middle">
+              <StatusBadge status={item.status} />
+            </td>
             <td className="p-3 align-middle">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setSelected(item);
-                    setOpen(true);
-                  }}
+                  onClick={() => openEdit(item)}
                   className="py-1.5 px-3 border rounded-md text-xs font-medium hover:bg-[var(--color-background-soft)] transition-colors"
-                  style={{ borderColor: "var(--color-border)", color: "var(--color-foreground)" }}
+                  style={{
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-foreground)",
+                  }}
                 >
                   Edit
                 </button>
@@ -133,32 +183,58 @@ export default function GalleryAdminClient({ initial }: { initial: GalleryItem[]
         )}
       />
 
-      <AdminModal
+      {/* Form modal — separate component */}
+      <GalleryForm
         open={open}
-        title={selected ? "Edit Gallery Item" : "New Gallery Item"}
+        editing={editing}
         onClose={() => {
           setOpen(false);
-          setSelected(null);
+          setEditing(null);
         }}
-      >
-        <AdminForm
-          initial={formInitialData as any}
-          onCancel={() => {
-            setOpen(false);
-            setSelected(null);
-          }}
-          onSubmit={async (formData: any) => {
-            const galleryPayload = {
-              title: formData.title?.en || formData.title,
-              category: formData.category?.en || formData.category,
-              image: formData.image,
-            };
-
-            if (selected) await handleUpdate(galleryPayload);
-            else await handleCreate(galleryPayload);
-          }}
-        />
-      </AdminModal>
+        onSaved={handleSaved}
+      />
     </div>
+  );
+}
+
+/* ─────────────────────────── Helpers ─────────────────────────── */
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div
+      className="rounded-xl border p-4"
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-border)",
+      }}
+    >
+      <div
+        className="text-xs uppercase tracking-wide"
+        style={{ color: "var(--color-foreground-muted)" }}
+      >
+        {label}
+      </div>
+      <div
+        className="text-2xl font-bold mt-1"
+        style={{ color: "var(--color-foreground)" }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: GalleryAlbum["status"] }) {
+  const styles: Record<GalleryAlbum["status"], string> = {
+    PUBLISHED: "bg-green-100 text-green-700",
+    DRAFT: "bg-yellow-100 text-yellow-700",
+    ARCHIVED: "bg-gray-200 text-gray-700",
+  };
+  return (
+    <span
+      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${styles[status]}`}
+    >
+      {STATUS_LABEL[status]}
+    </span>
   );
 }

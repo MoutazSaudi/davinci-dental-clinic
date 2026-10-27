@@ -2,76 +2,42 @@
 
 import React, { useEffect, useState } from "react";
 import AdminTable from "@/components/admin/AdminTable";
-import AdminModal from "@/components/admin/AdminModal";
-import AdminForm from "@/components/admin/AdminForm";
+import { DoctorAdmin, STATUS_LABEL } from "./types";
+import DoctorForm from "./DoctorForm";
 
-export interface DoctorItem {
-  id: string;
-  name: string;
-  specialty: string;
-  image: string;
-}
-
-export default function DoctorsAdminClient({ initial }: { initial: DoctorItem[] }) {
-  const [items, setItems] = useState<DoctorItem[]>(initial || []);
-  const [selected, setSelected] = useState<DoctorItem | null>(null);
+export default function DoctorsAdminClient({
+  initial,
+}: {
+  initial: DoctorAdmin[];
+}) {
+  const [items, setItems] = useState<DoctorAdmin[]>(initial || []);
   const [open, setOpen] = useState(false);
-  const [pendingImage, setPendingImage] = useState("");
+  const [editing, setEditing] = useState<DoctorAdmin | null>(null);
 
   useEffect(() => {
-    setItems(initial || []);
-  }, [initial]);
-
-  useEffect(() => {
-    setPendingImage(selected?.image || "");
-  }, [selected, open]);
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function refresh() {
     const res = await fetch("/api/admin/doctors");
     const data = await res.json();
-    setItems(data || []);
+    setItems(Array.isArray(data) ? data : []);
   }
 
-  async function uploadImage(file: File | null) {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch("/api/admin/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!res.ok) {
-      alert("Image upload failed");
-      return;
-    }
-
-    const data = await res.json();
-    setPendingImage(data.url || "");
+  function openCreate() {
+    setEditing(null);
+    setOpen(true);
   }
 
-  async function handleCreate(data: any) {
-    await fetch("/api/admin/doctors", {
-      method: "POST",
-      body: JSON.stringify({ ...data, image: pendingImage || data.image }),
-      headers: { "Content-Type": "application/json" },
-    });
+  function openEdit(item: DoctorAdmin) {
+    setEditing(item);
+    setOpen(true);
+  }
+
+  async function handleSaved() {
     setOpen(false);
-    setPendingImage("");
-    await refresh();
-  }
-
-  async function handleUpdate(data: any) {
-    await fetch(`/api/admin/doctors?id=${encodeURIComponent(selected?.id || "")}`, {
-      method: "PUT",
-      body: JSON.stringify({ ...data, image: pendingImage || data.image }),
-      headers: { "Content-Type": "application/json" },
-    });
-    setSelected(null);
-    setOpen(false);
-    setPendingImage("");
+    setEditing(null);
     await refresh();
   }
 
@@ -83,67 +49,101 @@ export default function DoctorsAdminClient({ initial }: { initial: DoctorItem[] 
     await refresh();
   }
 
-  const formInitialData = selected
-    ? {
-        slug: selected.id,
-        title: { en: selected.name },
-        category: { en: selected.specialty },
-        image: selected.image,
-      }
-    : null;
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold" style={{ color: "var(--color-primary)" }}>Doctors</h2>
-          <p className="text-sm" style={{ color: "var(--color-foreground-muted)" }}>Total doctors: {items.length}</p>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ color: "var(--color-primary)" }}
+          >
+            Doctors
+          </h1>
+          <p
+            className="text-sm mt-1"
+            style={{ color: "var(--color-foreground-muted)" }}
+          >
+            Manage the medical team shown on the website.
+          </p>
         </div>
         <button
-          onClick={() => {
-            setSelected(null);
-            setOpen(true);
-          }}
-          className="py-2 px-4 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+          onClick={openCreate}
+          className="shrink-0 py-2 px-4 text-white font-medium rounded-lg hover:opacity-90 transition-opacity shadow-sm"
           style={{ backgroundColor: "var(--color-primary)" }}
         >
-          New Doctor
+          + New Doctor
         </button>
       </div>
 
-      <AdminTable<DoctorItem>
+      <AdminTable<DoctorAdmin>
         items={items}
         pageSize={8}
-        emptyMessage="No doctors found."
+        emptyMessage="No doctors yet. Add your first doctor to get started."
         headers={
           <tr>
-            <th className="p-3 text-left">Image</th>
+            <th className="p-3 text-left">Photo</th>
             <th className="p-3 text-left">Name</th>
             <th className="p-3 text-left">Specialty</th>
+            <th className="p-3 text-left">Status</th>
             <th className="p-3 text-left">Actions</th>
           </tr>
         }
         renderRow={(item) => (
           <>
             <td className="p-3 align-middle">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-12 h-12 object-cover rounded-full border"
-                style={{ borderColor: "var(--color-border)" }}
-              />
+              {item.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.image}
+                  alt={item.name.en}
+                  className="w-12 h-12 object-cover rounded-full border"
+                  style={{ borderColor: "var(--color-border)" }}
+                />
+              ) : (
+                <div
+                  className="w-12 h-12 rounded-full border flex items-center justify-center text-xs"
+                  style={{
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-foreground-muted)",
+                  }}
+                >
+                  —
+                </div>
+              )}
             </td>
-            <td className="p-3 align-middle font-medium" style={{ color: "var(--color-foreground)" }}>{item.name}</td>
-            <td className="p-3 align-middle" style={{ color: "var(--color-foreground-muted)" }}>{item.specialty}</td>
+            <td className="p-3 align-middle">
+              <div
+                className="font-medium text-sm"
+                style={{ color: "var(--color-foreground)" }}
+              >
+                {item.name.en}
+              </div>
+              <div
+                className="text-xs mt-0.5"
+                dir="rtl"
+                style={{ color: "var(--color-foreground-muted)" }}
+              >
+                {item.name.ar}
+              </div>
+            </td>
+            <td
+              className="p-3 align-middle text-sm"
+              style={{ color: "var(--color-foreground-muted)" }}
+            >
+              {item.specialization.en || "—"}
+            </td>
+            <td className="p-3 align-middle">
+              <StatusBadge status={item.status} />
+            </td>
             <td className="p-3 align-middle">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setSelected(item);
-                    setOpen(true);
-                  }}
+                  onClick={() => openEdit(item)}
                   className="py-1.5 px-3 border rounded-md text-xs font-medium hover:bg-[var(--color-background-soft)] transition-colors"
-                  style={{ borderColor: "var(--color-border)", color: "var(--color-foreground)" }}
+                  style={{
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-foreground)",
+                  }}
                 >
                   Edit
                 </button>
@@ -159,47 +159,30 @@ export default function DoctorsAdminClient({ initial }: { initial: DoctorItem[] 
         )}
       />
 
-      <AdminModal
+      <DoctorForm
         open={open}
-        title={selected ? "Edit Doctor" : "New Doctor"}
+        editing={editing}
         onClose={() => {
           setOpen(false);
-          setSelected(null);
-          setPendingImage("");
+          setEditing(null);
         }}
-      >
-        <div className="space-y-4 mb-4">
-          <label className="block font-medium text-sm text-gray-700">Upload image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => uploadImage(event.target.files?.[0] ?? null)}
-            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700"
-          />
-          {pendingImage && (
-            <img src={pendingImage} alt="Selected doctor" className="h-24 w-24 object-cover rounded-full border" />
-          )}
-        </div>
-
-        <AdminForm
-          initial={formInitialData as any}
-          onCancel={() => {
-            setOpen(false);
-            setSelected(null);
-            setPendingImage("");
-          }}
-          onSubmit={async (formData: any) => {
-            const doctorPayload = {
-              name: formData.title?.en || formData.title,
-              specialty: formData.category?.en || formData.category,
-              image: pendingImage || formData.image,
-            };
-
-            if (selected) await handleUpdate(doctorPayload);
-            else await handleCreate(doctorPayload);
-          }}
-        />
-      </AdminModal>
+        onSaved={handleSaved}
+      />
     </div>
+  );
+}
+
+function StatusBadge({ status }: { status: DoctorAdmin["status"] }) {
+  const styles: Record<DoctorAdmin["status"], string> = {
+    PUBLISHED: "bg-green-100 text-green-700",
+    DRAFT: "bg-yellow-100 text-yellow-700",
+    ARCHIVED: "bg-gray-200 text-gray-700",
+  };
+  return (
+    <span
+      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${styles[status]}`}
+    >
+      {STATUS_LABEL[status]}
+    </span>
   );
 }

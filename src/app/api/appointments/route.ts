@@ -3,16 +3,13 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 
 const appointmentSchema = z.object({
-  name: z.string().trim().min(2, "Name is required.").optional(),
-  patientName: z.string().trim().min(2, "Name is required.").optional(),
-  phone: z.string().trim().min(7, "Phone number is required.").optional().or(z.literal("")),
-  patientPhone: z.string().trim().min(7, "Phone number is required.").optional().or(z.literal("")),
-  email: z.string().trim().email().optional().or(z.literal("")),
-  message: z.string().trim().optional(),
+  patientName: z.string().trim().min(2, "Name is required."),
+  patientPhone: z.string().trim().min(7, "Phone number is required."),
+  patientEmail: z.string().trim().email().optional().or(z.literal("")),
+  scheduledAt: z.string().trim().min(1, "Preferred date and time is required."),
+  doctorId: z.string().trim().optional(),
+  serviceSlug: z.string().trim().optional(),
   notes: z.string().trim().optional(),
-  date: z.string().trim().optional(),
-  scheduledAt: z.union([z.string().trim(), z.date()]).optional(),
-  locale: z.string().trim().default("ar"),
 });
 
 export async function POST(request: Request) {
@@ -20,41 +17,23 @@ export async function POST(request: Request) {
     const body = await request.json();
     const payload = appointmentSchema.parse(body);
 
-    const patientName = (payload.patientName ?? payload.name ?? "Patient").trim();
-    const patientPhone = (payload.patientPhone ?? payload.phone ?? "").trim();
-    const notes = (payload.notes ?? payload.message ?? "").trim();
-    const scheduledAt = payload.scheduledAt
-      ? new Date(payload.scheduledAt)
-      : payload.date
-        ? new Date(payload.date)
-        : new Date();
-
-    if (!patientName) {
+    const scheduledAt = new Date(payload.scheduledAt);
+    if (isNaN(scheduledAt.getTime())) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Please provide a valid patient name.",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (patientPhone && patientPhone.length < 7) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Please provide a valid phone number.",
-        },
-        { status: 400 },
+        { success: false, message: "Invalid date format." },
+        { status: 400 }
       );
     }
 
     const created = await prisma.appointment.create({
       data: {
-        patientName,
-        patientPhone,
+        patientName: payload.patientName,
+        patientPhone: payload.patientPhone,
+        patientEmail: payload.patientEmail || null,
         scheduledAt,
-        notes: notes || null,
+        doctorId: payload.doctorId || null,
+        serviceSlug: payload.serviceSlug || null,
+        notes: payload.notes || null,
         status: "PENDING",
       },
     });
@@ -65,7 +44,7 @@ export async function POST(request: Request) {
         message: "Appointment request submitted successfully.",
         data: { id: created.id },
       },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -75,7 +54,7 @@ export async function POST(request: Request) {
           message: "Please check the form values and try again.",
           errors: error.flatten().fieldErrors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -84,7 +63,7 @@ export async function POST(request: Request) {
         success: false,
         message: "Unable to submit the appointment request right now.",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

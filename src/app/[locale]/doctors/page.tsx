@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/website/Breadcrumbs";
 import { PageHeader } from "@/components/website/PageHeader";
 import { clinicContactData, siteConfig } from "@/data/site";
+import { getPublishedDoctors } from "@/lib/services/doctors";
 import { locales, type Locale } from "@/lib/i18n";
 import {
   buildMetadata,
@@ -12,11 +13,9 @@ import {
   buildBreadcrumbSchema,
 } from "@/data/seo";
 
-const OG_IMAGE = "/images/doctors/DrMuhanad.jpeg";
+export const dynamic = "force-dynamic";
 
-/* ═══════════════════════════════════════════════════
-   SEO — كل شيء من src/data/seo.ts
-   ═══════════════════════════════════════════════════ */
+const OG_IMAGE = "/images/doctors/DrMuhanad.jpeg";
 
 export async function generateMetadata({
   params,
@@ -32,10 +31,6 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-/* ═══════════════════════════════════════════════════
-   الصفحة
-   ═══════════════════════════════════════════════════ */
-
 export default async function DoctorsPage({
   params,
 }: {
@@ -44,95 +39,38 @@ export default async function DoctorsPage({
   const { locale } = await params;
   const safeLocale = locale === "ar" ? "ar" : "en";
 
-  if (!locales.includes(safeLocale as Locale)) {
-    notFound();
-  }
+  if (!locales.includes(safeLocale as Locale)) notFound();
 
   const isArabic = safeLocale === "ar";
+  const L = safeLocale as "ar" | "en";
+
+  const doctors = await getPublishedDoctors();
+  const featured = doctors[0];
 
   const pageUrl = `${siteConfig.baseUrl}/${safeLocale}/doctors`;
-  const ogImageUrl = `${siteConfig.baseUrl}${OG_IMAGE}`;
+  const ogImageUrl = `${siteConfig.baseUrl}${featured?.image || OG_IMAGE}`;
 
-  /* ═══════════════════════════════════════════
-     Doctor data
-     ═══════════════════════════════════════════ */
-  const doctorName = isArabic ? "د. مهند سعودي" : "Dr. Mouhannad Saudi";
-  const doctorTitle = isArabic
-    ? "أخصائي تقويم الأسنان، وأخصائي آلام الوجه والفكين والمفصل الفكي الصدغي"
-    : "Orthodontist and  Orofacial pain & TMJ specialist";
-  const doctorBio = isArabic
-    ? "حصل على شهادة الاختصاص في آلام الوجه والمفصل الفكي الصدغي من جامعة جنوب كاليفورنيا (USC)، الولايات المتحدة. يهتم هذا التخصص بالآلام العصبية والعضلية في منطقة الوجه، والمفصل الفكي الصدغي، والصداع، وآلام الأذن، ومشاكل توقف التنفس أثناء النوم."
-    : "Received a specialized diploma in Orofacial Pain and TMJ from the University of Southern California (USC), USA. This specialty focuses on neuromuscular pain in the facial region, TMJ disorders, headaches, ear pain, and sleep apnea.";
-  const doctorImage = OG_IMAGE;
-
-  const doctorCredentials = [
-    { ar: "USC · USA", en: "USC · USA" },
-    { ar: "دبلوم Orofacial Pain", en: "Orofacial Pain Diploma" },
-    { ar: "عضو جمعية TMJ", en: "TMJ Association Member" },
-  ];
-
-  const doctorSpecialties = isArabic
-    ? [
-        "آلام الوجه",
-        "المفصل الفكي الصدغي (TMJ)",
-        "الصداع",
-        "آلام الأذن",
-        "توقف التنفس أثناء النوم",
-        "تقويم الأسنان",
-      ]
-    : [
-        "Facial Pain",
-        "TMJ Disorders",
-        "Headaches",
-        "Ear Pain",
-        "Sleep Apnea",
-        "Orthodontics",
-      ];
-
-  /* ═══════════════════════════════════════════
-     JSON-LD
-     ═══════════════════════════════════════════ */
-
-  // Physician schema — خاص بهذه الصفحة فقط
-  const physicianLd = {
+  // Physician JSON-LD for each doctor
+  const physicianLds = doctors.map((doc) => ({
     "@context": "https://schema.org",
     "@type": "Physician",
-    "@id": `${pageUrl}/#physician`,
-    name: doctorName,
-    alternateName: isArabic ? "Dr. Mouhannad Saudi" : "د. مهند سعودي",
-    jobTitle: doctorTitle,
-    description: doctorBio,
-    image: ogImageUrl,
+    "@id": `${pageUrl}/#${doc.slug}`,
+    name: doc.name[L],
+    jobTitle: doc.specialization[L] || undefined,
+    description: doc.bio[L] || undefined,
+    image: doc.image ? `${siteConfig.baseUrl}${doc.image}` : ogImageUrl,
     url: pageUrl,
-    medicalSpecialty: ["Orthodontic", "PainMedicine", "OralSurgery"],
-    knowsAbout: doctorSpecialties,
-    alumniOf: {
-      "@type": "CollegeOrUniversity",
-      name: "University of Southern California (USC)",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Los Angeles",
-        addressCountry: "US",
-      },
-    },
-    worksFor: {
-      "@id": `${siteConfig.baseUrl}/#organization`,
-    },
-    sameAs: [
-      clinicContactData.social.facebook,
-      clinicContactData.social.instagram,
-    ],
-  };
+    worksFor: { "@id": `${siteConfig.baseUrl}/#organization` },
+    sameAs: [doc.instagram, doc.linkedin, clinicContactData.social.facebook, clinicContactData.social.instagram].filter(Boolean),
+  }));
 
-  // Breadcrumb schema — يُبنى من seo.ts
   const breadcrumbLd = buildBreadcrumbSchema(safeLocale, [
     { name: isArabic ? "الرئيسية" : "Home", path: "" },
     { name: isArabic ? "الأطباء" : "Doctors", path: "doctors" },
   ]);
 
-  /* Organization + WebSite + WebPage(doctors) + Physician + Breadcrumb */
   const jsonLdBlocks = buildPageJsonLd("doctors", safeLocale, [
-    physicianLd,
+    ...physicianLds,
     breadcrumbLd,
   ]);
 
@@ -165,157 +103,114 @@ export default async function DoctorsPage({
           }
           description={
             isArabic
-              ? "يقود فريقنا طبيب متخصص في آلام الوجه والمفصل الفكي الصدغي، بخبرة أكاديمية من جامعة USC، وشغف بالرعاية الدقيقة والمريحة لكل مريض."
-              : "Our team is led by a specialist in orofacial pain and TMJ, with academic training from USC and a passion for precise, comfortable patient care."
+              ? "نخبة من الأطباء المتخصصين، بخبرة أكاديمية وشغف بالرعاية الدقيقة لكل مريض."
+              : "A team of specialized doctors with academic expertise and a passion for precise patient care."
           }
         />
 
-        {/* ═══ Featured Doctor ═══ */}
+        {/* Doctors list */}
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[32px] border border-border bg-surface shadow-[0_20px_50px_rgba(122,28,81,0.08)]">
-            <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
-              {/* Image column */}
-              <div className="relative h-96 w-full lg:h-auto lg:min-h-[560px]">
-                <Image
-                  src={doctorImage}
-                  alt={doctorName}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="object-cover object-top"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent lg:bg-gradient-to-r lg:rtl:bg-gradient-to-l"
-                />
-                <span className="absolute bottom-4 start-4 inline-flex items-center gap-2 rounded-full bg-gold px-4 py-2 text-xs font-bold tracking-wider text-primary shadow-2xl">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  USC · USA
-                </span>
-              </div>
-
-              {/* Content column */}
-              <div className="p-6 sm:p-8 lg:p-10">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold-dark">
-                  {isArabic ? "المشرف الطبي" : "Medical Lead"}
-                </p>
-
-                <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight text-primary sm:text-4xl lg:text-5xl">
-                  {doctorName}
-                </h1>
-
-                <p className="mt-2 text-base font-semibold text-teal sm:text-lg">
-                  {doctorTitle}
-                </p>
-
-                <div className="my-6 h-[3px] w-20 rounded-full bg-gold" />
-
-                <p className="text-base leading-8 text-foreground-muted">
-                  {doctorBio}
-                </p>
-
-                {/* Specialties */}
-                <div className="mt-6">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-teal">
-                    {isArabic ? "مجالات التخصص" : "Specialty areas"}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {doctorSpecialties.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-border bg-background-soft px-3 py-1.5 text-xs font-medium text-foreground-muted transition-all hover:border-teal/50 hover:text-primary"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Credentials */}
-                <div className="mt-6">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-teal">
-                    {isArabic ? "الشهادات" : "Credentials"}
-                  </p>
-                  <ul className="space-y-2">
-                    {doctorCredentials.map((cred) => (
-                      <li
-                        key={cred.en}
-                        className="flex items-center gap-3 text-sm text-foreground"
-                      >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-mint text-xs text-teal">
-                          ✓
-                        </span>
-                        <span>{isArabic ? cred.ar : cred.en}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Actions */}
-                <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Link
-                    href={`/${safeLocale}/contact`}
-                    className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(122,28,81,0.20)] transition-all hover:bg-primary-light"
-                  >
-                    {isArabic ? "احجز استشارة" : "Book a consultation"}
-                    <span
-                      aria-hidden="true"
-                      className="transition-transform group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1"
-                    >
-                      ›
-                    </span>
-                  </Link>
-
-                  <a
-                    href={clinicContactData.social.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-primary transition-all hover:border-teal hover:bg-mint hover:text-teal"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="5" />
-                      <circle cx="12" cy="12" r="4" />
-                      <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" />
-                    </svg>
-                  </a>
-                  <a
-                    href={clinicContactData.social.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Facebook"
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-primary transition-all hover:border-teal hover:bg-mint hover:text-teal"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
+          {doctors.length === 0 ? (
+            <div className="rounded-[28px] border border-dashed border-border bg-background-soft p-8 text-center">
+              <h3 className="text-xl font-bold text-primary">
+                {isArabic ? "قريبًا" : "Coming soon"}
+              </h3>
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-foreground-muted">
+                {isArabic
+                  ? "فريقنا الطبي قيد التحديث، تابعنا قريبًا."
+                  : "Our medical team is being updated. Stay tuned."}
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              {doctors.map((doc) => (
+                <article
+                  key={doc.slug}
+                  className="group overflow-hidden rounded-[28px] border border-border bg-surface shadow-[0_16px_40px_rgba(122,28,81,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(122,28,81,0.12)]"
+                >
+                  <div className="relative aspect-[4/3] w-full bg-background-soft">
+                    {doc.image ? (
+                      <Image
+                        src={doc.image}
+                        alt={doc.name[L]}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover object-top"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm text-foreground-muted">
+                        {isArabic ? "لا توجد صورة" : "No photo"}
+                      </div>
+                    )}
+                    <div className="absolute bottom-4 start-4 inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1.5 text-xs font-bold text-primary shadow-xl">
+                      {isArabic ? "طبيب" : "Doctor"}
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <h2 className="text-2xl font-black text-primary">
+                      {doc.name[L]}
+                    </h2>
+                    {doc.specialization[L] && (
+                      <p className="mt-2 text-sm font-semibold text-teal">
+                        {doc.specialization[L]}
+                      </p>
+                    )}
+                    {doc.bio[L] && (
+                      <p className="mt-3 text-sm leading-7 text-foreground-muted line-clamp-4">
+                        {doc.bio[L]}
+                      </p>
+                    )}
+
+                    <div className="mt-5 flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/${safeLocale}/contact?doctor=${doc.slug}`}
+                        className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
+                      >
+                        {isArabic ? "احجز مع الطبيب" : "Book with doctor"}
+                      </Link>
+                      {doc.instagram && (
+                        <a
+                          href={doc.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Instagram"
+                          className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-primary transition hover:border-teal hover:bg-mint hover:text-teal"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="3" width="18" height="18" rx="5" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" />
+                          </svg>
+                        </a>
+                      )}
+                      {doc.linkedin && (
+                        <a
+                          href={doc.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="LinkedIn"
+                          className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-primary transition hover:border-teal hover:bg-mint hover:text-teal"
+                        >
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z" />
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* ═══ Philosophy ═══ */}
+        {/* Philosophy */}
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="grid gap-6 lg:grid-cols-3">
             {[
               {
-                title: isArabic
-                  ? "تشخيص دقيق أولًا"
-                  : "Precise diagnosis first",
+                title: isArabic ? "تشخيص دقيق أولًا" : "Precise diagnosis first",
                 body: isArabic
                   ? "لا نبدأ العلاج قبل فهم الحالة كاملة — الأشعة، التاريخ الطبي، والفحص السريري."
                   : "We never start treatment before understanding the full case — imaging, medical history, and clinical examination.",
@@ -340,39 +235,12 @@ export default async function DoctorsPage({
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-mint text-xl text-teal">
                   ✦
                 </div>
-                <h3 className="text-lg font-bold text-primary">
-                  {item.title}
-                </h3>
+                <h3 className="text-lg font-bold text-primary">{item.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-foreground-muted">
                   {item.body}
                 </p>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* ═══ Coming Soon ═══ */}
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-[28px] border border-dashed border-border bg-background-soft p-8 text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-teal">
-              {isArabic ? "قريبًا" : "Coming soon"}
-            </p>
-            <h3 className="mt-3 text-xl font-bold text-primary sm:text-2xl">
-              {isArabic
-                ? "فريق طبي متكامل ينضم قريبًا"
-                : "A full medical team joining soon"}
-            </h3>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-foreground-muted">
-              {isArabic
-                ? "نعمل على توسيع فريقنا بأطباء متخصصين في مختلف فروع طب الأسنان — التركيبات، جراحة الفم، طب أسنان الأطفال، وتقويم الأسنان."
-                : "We're expanding our team with specialists in various dental fields — prosthodontics, oral surgery, pediatric dentistry, and orthodontics."}
-            </p>
-            <Link
-              href={`/${safeLocale}/contact`}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-light"
-            >
-              {isArabic ? "تواصل معنا" : "Contact us"}
-            </Link>
           </div>
         </section>
       </div>
