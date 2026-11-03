@@ -1,10 +1,13 @@
 
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Cairo, Inter } from "next/font/google";
 import { Footer } from "@/components/website/Footer";
 import { Header } from "@/components/website/Header";
 import { clinicContactData, siteConfig } from "@/data/site";
 import { getMessages, locales, type Locale } from "@/lib/i18n";
+
+const GA_MEASUREMENT_ID = "G-8FETH3B32C";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -98,6 +101,22 @@ export default async function LocaleLayout({
       dir={isArabic ? "rtl" : "ltr"}
       className={`${inter.variable} ${cairo.variable} min-h-screen bg-[#f6f9f8] text-[#172b36]`}
     >
+      {/* Google Analytics */}
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        strategy="afterInteractive"
+      />
+
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', '${GA_MEASUREMENT_ID}');
+        `}
+      </Script>
+
       <Header locale={safeLocale} nav={messages.nav} />
 
       {children}
