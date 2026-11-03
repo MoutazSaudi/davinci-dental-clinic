@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.siteName.en}`,
   },
   description:
-    "Da Vinci Dental Clinic in Damascus offers orthodontic treatment, TMJ care, cosmetic dentistry, and family dental services in Syria.",
+    "Davinci Dental Clinic in Damascus offers orthodontic treatment, TMJ care, cosmetic dentistry, and family dental services in Syria.",
   applicationName: siteConfig.siteName.en,
   keywords: [
     "dental clinic in Damascus",

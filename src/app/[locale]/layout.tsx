@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Cairo, Inter } from "next/font/google";
 import { Footer } from "@/components/website/Footer";
@@ -17,31 +18,59 @@ const cairo = Cairo({
   display: "swap",
 });
 
-/* ═══════════════════════════════════════════════════
-   Metadata — locale-aware fallback
-   (كل صفحة لها generateMetadata، هذا احتياط لصفحات 404)
-   ═══════════════════════════════════════════════════ */
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const safeLocale = locale === "ar" ? "ar" : "en";
+  const safeLocale: Locale = locale === "ar" ? "ar" : "en";
 
   return {
     metadataBase: new URL(siteConfig.baseUrl),
+
     title: {
       default: siteConfig.defaultTitle[safeLocale],
       template: `%s | ${siteConfig.siteName[safeLocale]}`,
     },
+
     description: siteConfig.defaultDescription[safeLocale],
+
+    applicationName: siteConfig.siteName[safeLocale],
+
     alternates: {
       languages: {
         [siteConfig.hreflang.ar]: `${siteConfig.baseUrl}/ar`,
         [siteConfig.hreflang.en]: `${siteConfig.baseUrl}/en`,
         "x-default": `${siteConfig.baseUrl}/en`,
+      },
+    },
+
+    openGraph: {
+      type: "website",
+      siteName: siteConfig.siteName[safeLocale],
+      title: siteConfig.defaultTitle[safeLocale],
+      description: siteConfig.defaultDescription[safeLocale],
+      locale: siteConfig.ogLocale[safeLocale],
+      images: [
+        {
+          url: "/images/doctors/DrMuhanad.jpeg",
+          width: 1200,
+          height: 630,
+          alt: siteConfig.siteName[safeLocale],
+        },
+      ],
+    },
+
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
       },
     },
   };
@@ -51,10 +80,6 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-/* ═══════════════════════════════════════════════════
-   Layout
-   ═══════════════════════════════════════════════════ */
-
 export default async function LocaleLayout({
   children,
   params,
@@ -63,18 +88,20 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+
   const safeLocale: Locale = locale === "ar" ? "ar" : "en";
   const isArabic = safeLocale === "ar";
   const messages = getMessages(safeLocale);
 
   return (
     <div
-      lang={isArabic ? "ar" : "en"}
       dir={isArabic ? "rtl" : "ltr"}
       className={`${inter.variable} ${cairo.variable} min-h-screen bg-[#f6f9f8] text-[#172b36]`}
     >
       <Header locale={safeLocale} nav={messages.nav} />
+
       {children}
+
       <Footer
         locale={safeLocale}
         footer={{
