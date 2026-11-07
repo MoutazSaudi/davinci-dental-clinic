@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cairo, Inter } from "next/font/google";
 import { siteConfig } from "@/data/site";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,8 +39,8 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteConfig.baseUrl,
     languages: {
-      "en": siteConfig.baseUrl,
-      "ar": `${siteConfig.baseUrl}/ar`,
+      en: siteConfig.baseUrl,
+      ar: `${siteConfig.baseUrl}/ar`,
       "x-default": siteConfig.baseUrl,
     },
   },
@@ -80,10 +81,32 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${cairo.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#f6f9f8]">{children}</body>
+    <html
+      lang="en"
+      className={`${inter.variable} ${cairo.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-[#f6f9f8]">
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8FETH3B32C"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-8FETH3B32C');
+          `}
+        </Script>
+
+        {children}
+      </body>
     </html>
   );
 }
