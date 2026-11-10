@@ -604,7 +604,7 @@ export default function AdminDashboardPage() {
   const isRtl = locale === "ar";
 
   return (
-    <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto w-full max-w-[1600px] space-y-8 pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto min-w-0 w-full max-w-[1600px] space-y-8 pb-10">
       <header className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
