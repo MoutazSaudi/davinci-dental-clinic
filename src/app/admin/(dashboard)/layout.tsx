@@ -3,15 +3,14 @@ import { requireAdminServer } from "@/lib/auth";
 import Sidebar from "@/components/admin/Sidebar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // Redirects to /admin/login when there is no valid session.
   await requireAdminServer();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#f6f9f8]">
+    <div className="flex h-screen w-full overflow-hidden bg-[var(--color-background)] text-[var(--color-foreground)]">
       <Sidebar />
 
-      <div className="flex flex-col flex-1 h-full overflow-y-auto">
-        <main className="flex-1 p-6">{children}</main>
+      <div className="flex h-full flex-1 flex-col overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-5 lg:p-8">{children}</main>
       </div>
     </div>
   );

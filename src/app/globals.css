@@ -23,15 +23,16 @@
   /* ---------------------------------------------------------
      Brand Colors ( مستوحاة من هوية موقع دافنشي )
      --------------------------------------------------------- */
-  --color-primary: #7a1c51; /* اللون البنفسجي الأساسي للعناوين والأزرار البارزة */
+  --color-primary: #7a1c51;
   --color-primary-light: #9a2b68;
   --color-primary-dark: #5a113a;
+  --color-primary-soft: #f7eaf2;
 
   --color-gold: #c6a664;
   --color-gold-light: #d8bd86;
   --color-gold-dark: #a98b4d;
 
-  --color-teal: #008080; /* لون الفيروزي/التركواز المستمد من مربعات الموقع */
+  --color-teal: #008080;
   --color-teal-light: #20b2aa;
   --color-teal-dark: #005959;
 
@@ -43,32 +44,33 @@
      Neutral Colors
      --------------------------------------------------------- */
   --color-white: #ffffff;
-  --color-background: #ffffff;
-  --color-background-soft: #faf6f8;
-  --color-background-muted: #f3ecef;
+  --color-background: #f4f7f7;
+  --color-background-soft: #fbf5f7;
+  --color-background-muted: #f1ebee;
 
   --color-surface: #ffffff;
   --color-surface-soft: #fcf9fb;
+  --color-surface-strong: #f6f0f3;
 
-  --color-foreground: #2d2328;
-  --color-foreground-muted: #6b5c63;
-  --color-foreground-light: #9e8d94;
+  --color-foreground: #1f2937;
+  --color-foreground-muted: #667085;
+  --color-foreground-light: #98a2b3;
 
-  --color-border: #eadde2;
-  --color-border-light: #f3ecef;
-  --color-border-dark: #d4bec6;
+  --color-border: #e7dfe5;
+  --color-border-light: #f5eef2;
+  --color-border-dark: #d6c4ce;
 
   /* ---------------------------------------------------------
      Semantic Colors
      --------------------------------------------------------- */
-  --color-success: #008080;
-  --color-success-soft: #e6f2f2;
+  --color-success: #097964;
+  --color-success-soft: #eafaf6;
 
   --color-warning: #c6a664;
   --color-warning-soft: #faf5e9;
 
   --color-error: #b84a4a;
-  --color-error-soft: #fbeded;
+  --color-error-soft: #fceded;
 
   --color-info: #7a1c51;
   --color-info-soft: #f6e6ef;
@@ -89,9 +91,9 @@
      Shadows & Transitions
      --------------------------------------------------------- */
   --shadow-xs: 0 1px 2px rgba(122, 28, 81, 0.04);
-  --shadow-sm: 0 2px 8px rgba(122, 28, 81, 0.06);
-  --shadow-md: 0 8px 24px rgba(122, 28, 81, 0.08);
-  --shadow-lg: 0 16px 40px rgba(122, 28, 81, 0.1);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 54px rgba(15, 23, 42, 0.12);
 
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
@@ -99,6 +101,46 @@
 
   --background: var(--color-background);
   --foreground: var(--color-foreground);
+}
+
+html.dark {
+  color-scheme: dark;
+  --color-primary: #f0bfd9;
+  --color-primary-light: #f7d8e6;
+  --color-primary-dark: #de8bb5;
+  --color-primary-soft: rgba(122, 28, 81, 0.18);
+
+  --color-background: #0b1220;
+  --color-background-soft: #101b2d;
+  --color-background-muted: #152235;
+
+  --color-surface: #121c2c;
+  --color-surface-soft: #162336;
+  --color-surface-strong: #1a2a40;
+
+  --color-foreground: #edf2f7;
+  --color-foreground-muted: #b3bfd1;
+  --color-foreground-light: #7f8ea3;
+
+  --color-border: rgba(137, 150, 170, 0.2);
+  --color-border-light: rgba(137, 150, 170, 0.18);
+  --color-border-dark: rgba(137, 150, 170, 0.28);
+
+  --color-success: #4fd1b5;
+  --color-success-soft: rgba(79, 209, 181, 0.12);
+
+  --color-warning: #f3d38d;
+  --color-warning-soft: rgba(243, 211, 141, 0.12);
+
+  --color-error: #f08c8c;
+  --color-error-soft: rgba(240, 140, 140, 0.12);
+
+  --color-info: #f0bfd9;
+  --color-info-soft: rgba(122, 28, 81, 0.2);
+
+  --shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.35);
+  --shadow-md: 0 10px 28px rgba(2, 6, 23, 0.42);
+  --shadow-lg: 0 18px 54px rgba(2, 6, 23, 0.50);
 }
 
 /* =========================================================
