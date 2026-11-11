@@ -23,13 +23,18 @@ export async function POST(req: Request) {
 
   const { currentPassword, newPassword } = parsed.data;
 
-  const user = await prisma.adminUser.findUnique({ where: { id: auth.uid } });
+  const user = await prisma.adminUser.findUnique({
+    where: { id: auth.user.id },
+  });
   if (!user) {
     return NextResponse.json({ error: "user_not_found" }, { status: 404 });
   }
 
   if (!verifyPasswordRecord(currentPassword, user.passwordHash)) {
-    return NextResponse.json({ error: "wrong_current_password" }, { status: 400 });
+    return NextResponse.json(
+      { error: "wrong_current_password" },
+      { status: 400 },
+    );
   }
 
   if (verifyPasswordRecord(newPassword, user.passwordHash)) {
@@ -38,7 +43,10 @@ export async function POST(req: Request) {
 
   await prisma.adminUser.update({
     where: { id: user.id },
-    data: { passwordHash: createPasswordRecord(newPassword) },
+    data: {
+      passwordHash: createPasswordRecord(newPassword),
+      mustChangePassword: false, 
+    },
   });
 
   return NextResponse.json({ ok: true });

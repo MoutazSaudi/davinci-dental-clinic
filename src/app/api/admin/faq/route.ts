@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminApi } from "@/lib/auth";
+import { requirePermissionApi } from "@/lib/auth";
 
 const faqSchema = z.object({
   question: z.object({
@@ -44,7 +44,7 @@ const serializeFAQ = (faq: {
 };
 
 export async function GET(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("FAQ");
   if (auth instanceof NextResponse) return auth;
 
   const faqs = await prisma.fAQ.findMany({
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("FAQ");
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -91,7 +91,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("FAQ");
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -149,7 +149,7 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("FAQ");
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { GalleryAlbum, GalleryDraft, emptyDraft } from "./types";
 import ImageUploader from "@/components/admin/ImageUploader";
+import { useAdminT } from "@/app/hooks/useAdminT";
 
 interface GalleryFormProps {
   open: boolean;
@@ -20,6 +21,7 @@ export default function GalleryForm({
   const [draft, setDraft] = useState<GalleryDraft>(emptyDraft);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const { t, isRtl } = useAdminT();
 
   useEffect(() => {
     if (!open) return;
@@ -43,13 +45,12 @@ export default function GalleryForm({
     e?.preventDefault();
     setError(null);
 
-    if (!draft.slug.trim()) return setError("Slug is required.");
+    if (!draft.slug.trim()) return setError(t.gallery.errorSlug);
     if (!draft.title.en.trim() || !draft.title.ar.trim())
-      return setError("Both English and Arabic titles are required.");
+      return setError(t.gallery.errorTitles);
     if (!draft.category.en.trim() || !draft.category.ar.trim())
-      return setError("Both English and Arabic categories are required.");
-    if (draft.images.length === 0)
-      return setError("Add at least one image.");
+      return setError(t.gallery.errorCategories);
+    if (draft.images.length === 0) return setError(t.gallery.errorImages);
 
     setSaving(true);
     try {
@@ -65,16 +66,13 @@ export default function GalleryForm({
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(
-          typeof data?.error === "string" ? data.error : "Failed to save album."
-        );
+        setError(t.gallery.errorSaveFailed);
         return;
       }
 
       await onSaved();
     } catch {
-      setError("Network error.");
+      setError(t.common.networkError);
     } finally {
       setSaving(false);
     }
@@ -83,43 +81,41 @@ export default function GalleryForm({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl max-w-3xl w-full my-8 shadow-xl relative">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b bg-white rounded-t-xl">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto"
+      dir={isRtl ? "rtl" : "ltr"}
+    >
+      <div className="bg-[var(--color-surface)] rounded-xl max-w-3xl w-full my-8 shadow-xl relative">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
           <div>
-            <h3 className="text-lg font-bold">
-              {editing ? "Edit Album" : "New Album"}
+            <h3 className="text-lg font-bold text-[var(--color-foreground)]">
+              {editing ? t.gallery.formTitleEdit : t.gallery.formTitleNew}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {editing
-                ? "Update album details and images."
-                : "Create a new album with bilingual content."}
+            <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">
+              {editing ? t.gallery.formDescEdit : t.gallery.formDescNew}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-            aria-label="Close"
+            className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] text-xl font-bold"
+            aria-label={t.common.close}
             type="button"
           >
             ✕
           </button>
         </div>
 
-        {/* Body */}
         <form
           id="gallery-form"
           onSubmit={handleSubmit}
           className="px-6 py-5 space-y-6 max-h-[calc(100vh-16rem)] overflow-y-auto"
         >
-          {/* Section: Basics */}
           <FormSection
-            title="Basic Information"
-            description="Identifiers and visibility"
+            title={t.gallery.sectionBasic}
+            description={t.gallery.sectionBasicDesc}
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Field label="Slug" hint="URL-safe identifier">
+              <Field label={t.common.slug} hint={t.gallery.slugHint}>
                 <input
                   className="w-full p-2 border rounded text-sm font-mono"
                   value={draft.slug}
@@ -129,7 +125,7 @@ export default function GalleryForm({
                   placeholder="orthodontics"
                 />
               </Field>
-              <Field label="Sort order" hint="Lower = first">
+              <Field label={t.common.sortOrder} hint={t.gallery.sortOrderHint}>
                 <input
                   type="number"
                   className="w-full p-2 border rounded text-sm"
@@ -142,7 +138,7 @@ export default function GalleryForm({
                   }
                 />
               </Field>
-              <Field label="Status">
+              <Field label={t.common.status}>
                 <select
                   className="w-full p-2 border rounded text-sm"
                   value={draft.status}
@@ -153,22 +149,21 @@ export default function GalleryForm({
                     })
                   }
                 >
-                  <option value="PUBLISHED">Published</option>
-                  <option value="DRAFT">Draft</option>
-                  <option value="ARCHIVED">Archived</option>
+                  <option value="PUBLISHED">{t.status.PUBLISHED}</option>
+                  <option value="DRAFT">{t.status.DRAFT}</option>
+                  <option value="ARCHIVED">{t.status.ARCHIVED}</option>
                 </select>
               </Field>
             </div>
           </FormSection>
 
-          {/* Section: Bilingual content */}
           <FormSection
-            title="Bilingual Content"
-            description="Titles, categories, and descriptions"
+            title={t.gallery.sectionBilingual}
+            description={t.gallery.sectionBilingualDesc}
           >
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Title (EN)">
+                <Field label={t.gallery.titleEn}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     value={draft.title.en}
@@ -180,7 +175,7 @@ export default function GalleryForm({
                     }
                   />
                 </Field>
-                <Field label="Title (AR)">
+                <Field label={t.gallery.titleAr}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     dir="rtl"
@@ -195,7 +190,7 @@ export default function GalleryForm({
                 </Field>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Category (EN)">
+                <Field label={t.gallery.categoryEn}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     value={draft.category.en}
@@ -207,7 +202,7 @@ export default function GalleryForm({
                     }
                   />
                 </Field>
-                <Field label="Category (AR)">
+                <Field label={t.gallery.categoryAr}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     dir="rtl"
@@ -222,7 +217,7 @@ export default function GalleryForm({
                 </Field>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Description (EN)">
+                <Field label={t.gallery.descriptionEn}>
                   <textarea
                     className="w-full p-2 border rounded text-sm"
                     rows={3}
@@ -238,7 +233,7 @@ export default function GalleryForm({
                     }
                   />
                 </Field>
-                <Field label="Description (AR)">
+                <Field label={t.gallery.descriptionAr}>
                   <textarea
                     className="w-full p-2 border rounded text-sm"
                     dir="rtl"
@@ -259,10 +254,9 @@ export default function GalleryForm({
             </div>
           </FormSection>
 
-          {/* Section: Images */}
           <FormSection
-            title="Images"
-            description="Drag & drop to upload, or add by URL. Order defines display order."
+            title={t.gallery.sectionImages}
+            description={t.gallery.sectionImagesDesc}
           >
             <ImageUploader
               images={draft.images}
@@ -274,7 +268,7 @@ export default function GalleryForm({
 
           {error && (
             <div
-              className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+              className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/50"
               role="alert"
             >
               {error}
@@ -282,15 +276,14 @@ export default function GalleryForm({
           )}
         </form>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-background-soft)] rounded-b-xl">
           <button
             type="button"
             onClick={onClose}
-            className="py-2 px-4 border rounded-lg text-sm font-medium bg-white"
+            className="py-2 px-4 border rounded-lg text-sm font-medium bg-[var(--color-surface)]"
             style={{ borderColor: "var(--color-border)" }}
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             type="submit"
@@ -299,15 +292,17 @@ export default function GalleryForm({
             className="py-2 px-4 text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60 shadow-sm"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
-            {saving ? "Saving…" : editing ? "Save changes" : "Create album"}
+            {saving
+              ? t.common.saving
+              : editing
+              ? t.gallery.submitEdit
+              : t.gallery.submitNew}
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-/* ─────────────────────────── Helpers ─────────────────────────── */
 
 function FormSection({
   title,
@@ -321,8 +316,12 @@ function FormSection({
   return (
     <section className="space-y-3">
       <div>
-        <h4 className="text-sm font-semibold text-gray-800">{title}</h4>
-        <p className="text-xs text-gray-500">{description}</p>
+        <h4 className="text-sm font-semibold text-[var(--color-foreground)]">
+          {title}
+        </h4>
+        <p className="text-xs text-[var(--color-foreground-muted)]">
+          {description}
+        </p>
       </div>
       {children}
     </section>
@@ -341,10 +340,14 @@ function Field({
   return (
     <label className="block">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-gray-600">
+        <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-foreground-muted)]">
           {label}
         </span>
-        {hint && <span className="text-[10px] text-gray-400">{hint}</span>}
+        {hint && (
+          <span className="text-[10px] text-[var(--color-foreground-light)]">
+            {hint}
+          </span>
+        )}
       </div>
       {children}
     </label>

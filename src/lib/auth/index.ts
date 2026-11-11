@@ -1,17 +1,11 @@
 /**
  * Admin authentication (signed cookie session + AdminUser table).
- *
- * - Auth is ALWAYS on in production. In development it is on unless AUTH_ENABLED=false.
- * - Pages/layouts: `await requireAdminServer()`
- * - Route handlers:  const auth = await requireAdminApi(); if (auth instanceof NextResponse) return auth;
- *
- * NOTE: layouts are not re-rendered on client-side navigation, so every admin API
- * route handler must call requireAdminApi() itself. Never rely on the layout alone.
  */
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export { createPasswordRecord, verifyPasswordRecord } from "./password";
 
@@ -19,11 +13,42 @@ const SESSION_COOKIE_NAME = "__adm_sess";
 
 export type AdminRole = "ADMIN" | "EDITOR";
 
+export type AdminPermission =
+  | "OVERVIEW"
+  | "APPOINTMENTS"
+  | "MESSAGES"
+  | "DOCTORS"
+  | "GALLERY"
+  | "FAQ"
+  | "SERVICES";
+
+export const ALL_PERMISSIONS: AdminPermission[] = [
+  "OVERVIEW",
+  "APPOINTMENTS",
+  "MESSAGES",
+  "DOCTORS",
+  "GALLERY",
+  "FAQ",
+  "SERVICES",
+];
+
 export type AdminSession = {
   uid: string;
   role: AdminRole;
   iat: number;
 };
+
+export type AdminUserPublic = {
+  id: string;
+  username: string;
+  name: string | null;
+  role: AdminRole;
+  permissions: AdminPermission[];
+  isActive: boolean;
+  mustChangePassword: boolean;
+};
+
+export type AdminSessionWithUser = AdminSession & { user: AdminUserPublic };
 
 export function isAdminAuthEnabled() {
   if (process.env.NODE_ENV === "production") return true;
@@ -48,7 +73,10 @@ function getAuthSecret() {
 }
 
 function sign(raw: string) {
-  return crypto.createHmac("sha256", getAuthSecret()).update(raw).digest("base64url");
+  return crypto
+    .createHmac("sha256", getAuthSecret())
+    .update(raw)
+    .digest("base64url");
 }
 
 export function signSession(payload: Omit<AdminSession, "iat">) {
@@ -57,9 +85,10 @@ export function signSession(payload: Omit<AdminSession, "iat">) {
   return `${raw}.${sign(raw)}`;
 }
 
-export function verifySession(token: string | undefined): AdminSession | null {
+export function verifySession(
+  token: string | undefined
+): AdminSession | null {
   if (!token) return null;
-
   try {
     const [raw, sig] = token.split(".");
     if (!raw || !sig) return null;
@@ -72,7 +101,9 @@ export function verifySession(token: string | undefined): AdminSession | null {
       return null;
     }
 
-    const data = JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as Partial<AdminSession>;
+    const data = JSON.parse(
+      Buffer.from(raw, "base64url").toString("utf8")
+    ) as Partial<AdminSession>;
 
     if (
       typeof data.uid !== "string" ||
@@ -94,27 +125,146 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!isAdminAuthEnabled()) {
     return { uid: "dev", role: "ADMIN", iat: Date.now() };
   }
-
   const ck = await cookies();
   return verifySession(ck.get(SESSION_COOKIE_NAME)?.value);
 }
 
-/** For server components / layouts: redirects to the login page when not signed in. */
-export async function requireAdminServer(): Promise<AdminSession> {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
-  return session;
+/* ───────────────────────── User loading ───────────────────────── */
+
+function devUser(): AdminUserPublic {
+  return {
+    id: "dev",
+    username: "dev",
+    name: "Dev Admin",
+    role: "ADMIN",
+    permissions: ALL_PERMISSIONS,
+    isActive: true,
+    mustChangePassword: false,
+  };
 }
 
-/** For route handlers: returns the session, or a 401 response to return immediately. */
-export async function requireAdminApi(): Promise<AdminSession | NextResponse> {
+export async function getAdminUser(): Promise<AdminUserPublic | null> {
+  if (!isAdminAuthEnabled()) return devUser();
+
+  const session = await getAdminSession();
+  if (!session) return null;
+
+  const user = await prisma.adminUser.findUnique({
+    where: { id: session.uid },
+  });
+  if (!user || !user.isActive) return null;
+
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    role: user.role as AdminRole,
+    permissions: user.permissions as AdminPermission[],
+    isActive: user.isActive,
+    mustChangePassword: user.mustChangePassword,
+  };
+}
+
+/* ───────────────────────── Permission helpers ───────────────────────── */
+
+export function hasPermission(
+  user: AdminUserPublic,
+  permission: AdminPermission
+): boolean {
+  if (user.role === "ADMIN") return true;
+  return user.permissions.includes(permission);
+}
+
+export function getDefaultAdminRoute(user: AdminUserPublic): string {
+  if (user.role === "ADMIN") return "/admin";
+  const order: AdminPermission[] = [
+    "OVERVIEW",
+    "APPOINTMENTS",
+    "MESSAGES",
+    "DOCTORS",
+    "GALLERY",
+    "FAQ",
+    "SERVICES",
+  ];
+  for (const p of order) {
+    if (user.permissions.includes(p)) {
+      return p === "OVERVIEW" ? "/admin" : `/admin/${p.toLowerCase()}`;
+    }
+  }
+  return "/admin/settings";
+}
+
+/* ───────────────────────── Server components ───────────────────────── */
+
+export async function requireAdminServer(): Promise<AdminSessionWithUser> {
+  const session = await getAdminSession();
+  if (!session) redirect("/admin/login");
+
+  const user = await getAdminUser();
+  if (!user) redirect("/admin/login?reason=disabled");
+
+  return { ...session, user };
+}
+
+export async function requirePermissionServer(
+  permission: AdminPermission
+): Promise<AdminSessionWithUser> {
+  const s = await requireAdminServer();
+  if (!hasPermission(s.user, permission)) {
+    redirect("/admin/forbidden");
+  }
+  return s;
+}
+
+export async function requireAdminRoleServer(): Promise<AdminSessionWithUser> {
+  const s = await requireAdminServer();
+  if (s.user.role !== "ADMIN") redirect("/admin/forbidden");
+  return s;
+}
+
+/* ───────────────────────── Route handlers ───────────────────────── */
+
+export async function requireAdminApi(): Promise<
+  AdminSessionWithUser | NextResponse
+> {
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  return session;
+
+  const user = await getAdminUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: "account_disabled" },
+      { status: 401 }
+    );
+  }
+
+  return { ...session, user };
 }
 
-export async function requireAdminFromRequest(): Promise<AdminSession | NextResponse> {
+export async function requirePermissionApi(
+  permission: AdminPermission
+): Promise<AdminSessionWithUser | NextResponse> {
+  const s = await requireAdminApi();
+  if (s instanceof NextResponse) return s;
+  if (!hasPermission(s.user, permission)) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  return s;
+}
+
+export async function requireAdminRoleApi(): Promise<
+  AdminSessionWithUser | NextResponse
+> {
+  const s = await requireAdminApi();
+  if (s instanceof NextResponse) return s;
+  if (s.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  return s;
+}
+
+export async function requireAdminFromRequest() {
   return requireAdminApi();
 }

@@ -5,13 +5,12 @@ import AdminTable from "@/components/admin/AdminTable";
 import {
   MessageAdmin,
   MessageStatus,
-  MESSAGE_STATUS_LABEL,
-  MESSAGE_STATUS_STYLES,
 } from "./types";
+import { useAdminT } from "@/app/hooks/useAdminT";
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: "en" | "ar"): string {
   try {
-    return new Intl.DateTimeFormat("en-GB", {
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(iso));
@@ -20,11 +19,21 @@ function formatDate(iso: string): string {
   }
 }
 
+const MESSAGE_STATUS_STYLES: Record<MessageStatus, string> = {
+  NEW: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
+  READ: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  REPLIED:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  ARCHIVED:
+    "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+};
+
 export default function MessagesAdminClient() {
   const [items, setItems] = useState<MessageAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [detail, setDetail] = useState<MessageAdmin | null>(null);
+  const { t, locale } = useAdminT();
 
   useEffect(() => {
     void bootstrap();
@@ -61,7 +70,7 @@ export default function MessagesAdminClient() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this message?")) return;
+    if (!confirm(t.messages.deleteConfirm)) return;
     await fetch(`/api/admin/contact?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
@@ -79,47 +88,44 @@ export default function MessagesAdminClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1
           className="text-3xl font-bold tracking-tight"
           style={{ color: "var(--color-primary)" }}
         >
-          Contact Messages
+          {t.messages.title}
         </h1>
         <p
           className="text-sm mt-1"
           style={{ color: "var(--color-foreground-muted)" }}
         >
-          Read and manage inquiries submitted from the website.
+          {t.messages.description}
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Total" value={stats.total} />
-        <StatCard label="New" value={stats.new} />
-        <StatCard label="Replied" value={stats.replied} />
+        <StatCard label={t.messages.statTotal} value={stats.total} />
+        <StatCard label={t.messages.statNew} value={stats.new} />
+        <StatCard label={t.messages.statReplied} value={stats.replied} />
       </div>
 
-      {/* Table */}
       {loading ? (
-        <div className="rounded-xl border p-8 text-center text-sm text-gray-500">
-          Loading messages…
+        <div className="rounded-xl border p-8 text-center text-sm text-[var(--color-foreground-muted)]">
+          {t.messages.loading}
         </div>
       ) : (
         <AdminTable<MessageAdmin>
           items={items}
           pageSize={8}
-          emptyMessage="No contact messages yet."
+          emptyMessage={t.messages.empty}
           headers={
             <tr>
-              <th className="p-3 text-left">From</th>
-              <th className="p-3 text-left">Message</th>
-              <th className="p-3 text-left">Locale</th>
-              <th className="p-3 text-left">Received</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Actions</th>
+              <th className="p-3 text-start">{t.messages.from}</th>
+              <th className="p-3 text-start">{t.messages.message}</th>
+              <th className="p-3 text-start">{t.common.locale}</th>
+              <th className="p-3 text-start">{t.messages.received}</th>
+              <th className="p-3 text-start">{t.common.status}</th>
+              <th className="p-3 text-start">{t.common.actions}</th>
             </tr>
           }
           renderRow={(item) => {
@@ -167,7 +173,7 @@ export default function MessagesAdminClient() {
                   className="p-3 align-middle text-xs"
                   style={{ color: "var(--color-foreground-muted)" }}
                 >
-                  {formatDate(item.createdAt)}
+                  {formatDate(item.createdAt, locale)}
                 </td>
 
                 <td className="p-3 align-middle">
@@ -183,13 +189,11 @@ export default function MessagesAdminClient() {
                       MESSAGE_STATUS_STYLES[item.status]
                     }`}
                   >
-                    {(Object.keys(MESSAGE_STATUS_LABEL) as MessageStatus[]).map(
-                      (s) => (
-                        <option key={s} value={s}>
-                          {MESSAGE_STATUS_LABEL[s]}
-                        </option>
-                      )
-                    )}
+                    {(Object.keys(t.status) as MessageStatus[]).map((s) => (
+                      <option key={s} value={s}>
+                        {t.status[s]}
+                      </option>
+                    ))}
                   </select>
                 </td>
 
@@ -203,13 +207,13 @@ export default function MessagesAdminClient() {
                         color: "var(--color-foreground)",
                       }}
                     >
-                      View
+                      {t.messages.view}
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="py-1.5 px-3 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition-colors"
+                      className="py-1.5 px-3 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition-colors dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/30"
                     >
-                      Delete
+                      {t.common.delete}
                     </button>
                   </div>
                 </td>
@@ -219,7 +223,6 @@ export default function MessagesAdminClient() {
         />
       )}
 
-      {/* Detail modal */}
       {detail && (
         <MessageDetailModal
           message={detail}
@@ -233,8 +236,6 @@ export default function MessagesAdminClient() {
     </div>
   );
 }
-
-/* ─────────────────────────── Helpers ─────────────────────────── */
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
@@ -272,6 +273,7 @@ function MessageDetailModal({
 }) {
   const [adminNotes, setAdminNotes] = useState(message.adminNotes ?? "");
   const [saving, setSaving] = useState(false);
+  const { t, locale, isRtl } = useAdminT();
 
   async function saveNotes() {
     setSaving(true);
@@ -291,31 +293,37 @@ function MessageDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4 border-b pb-3">
-          <h3 className="text-lg font-bold">Message details</h3>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      dir={isRtl ? "rtl" : "ltr"}
+    >
+      <div className="bg-[var(--color-surface)] rounded-xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4 border-b border-[var(--color-border)] pb-3">
+          <h3 className="text-lg font-bold text-[var(--color-foreground)]">
+            {t.messages.detailsTitle}
+          </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            aria-label={t.common.close}
+            className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] text-xl font-bold"
           >
             ✕
           </button>
         </div>
 
         <dl className="space-y-3 text-sm">
-          <Row label="From" value={message.name} />
-          <Row label="Phone" value={message.phone || "—"} />
-          <Row label="Email" value={message.email || "—"} />
-          <Row label="Locale" value={message.locale.toUpperCase()} />
-          <Row label="Source" value={message.source} />
-          <Row label="Service" value={message.serviceSlug || "—"} />
+          <Row label={t.messages.from} value={message.name} />
+          <Row label={t.messages.phone} value={message.phone || "—"} />
+          <Row label={t.messages.email} value={message.email || "—"} />
+          <Row label={t.common.locale} value={message.locale.toUpperCase()} />
+          <Row label={t.messages.source} value={message.source} />
+          <Row label={t.messages.service} value={message.serviceSlug || "—"} />
           <Row
-            label="Received"
-            value={formatDate(message.createdAt)}
+            label={t.messages.received}
+            value={formatDate(message.createdAt, locale)}
           />
           <Row
-            label="Message"
+            label={t.messages.message}
             value={
               <span className="whitespace-pre-wrap">{message.message}</span>
             }
@@ -323,25 +331,25 @@ function MessageDetailModal({
         </dl>
 
         <div className="mt-5">
-          <label className="block mb-1 text-xs font-medium uppercase tracking-wide text-gray-600">
-            Admin notes
+          <label className="block mb-1 text-xs font-medium uppercase tracking-wide text-[var(--color-foreground-muted)]">
+            {t.messages.adminNotes}
           </label>
           <textarea
             className="w-full p-2 border rounded text-sm"
             rows={4}
             value={adminNotes}
             onChange={(e) => setAdminNotes(e.target.value)}
-            placeholder="Internal notes about this message…"
+            placeholder={t.messages.adminNotesPlaceholder}
           />
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="py-2 px-4 border rounded-lg text-sm font-medium"
+            className="py-2 px-4 border rounded-lg text-sm font-medium bg-[var(--color-surface)]"
             style={{ borderColor: "var(--color-border)" }}
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             onClick={saveNotes}
@@ -349,7 +357,7 @@ function MessageDetailModal({
             className="py-2 px-4 text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
-            {saving ? "Saving…" : "Save notes"}
+            {saving ? t.common.saving : t.messages.saveNotes}
           </button>
         </div>
       </div>
@@ -372,10 +380,7 @@ function Row({
       >
         {label}
       </dt>
-      <dd
-        className="flex-1"
-        style={{ color: "var(--color-foreground)" }}
-      >
+      <dd className="flex-1" style={{ color: "var(--color-foreground)" }}>
         {value}
       </dd>
     </div>

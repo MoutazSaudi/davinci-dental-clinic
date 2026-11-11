@@ -1,19 +1,18 @@
 "use client";
 
+import { useAdminT } from "@/app/hooks/useAdminT";
 import { useState } from "react";
-
 
 interface AdminTableProps<T> {
   items: T[];
   renderRow: (item: T, index: number) => React.ReactNode;
   headers?: React.ReactNode;
   pageSize?: number;
-  
-  // Optional server-side pagination props
+
   page?: number;
   totalItems?: number;
   onPageChange?: (page: number) => void;
-  
+
   emptyMessage?: string;
 }
 
@@ -25,18 +24,17 @@ export function AdminTable<T>({
   page: externalPage,
   totalItems: externalTotal,
   onPageChange,
-  emptyMessage = "No data available to display",
+  emptyMessage,
 }: AdminTableProps<T>) {
+  const { t } = useAdminT();
   const [internalPage, setInternalPage] = useState(1);
 
-  // Determine if pagination is server-side or client-side
   const isServerSide = externalTotal !== undefined && onPageChange !== undefined;
 
-  const currentPage = isServerSide ? (externalPage || 1) : internalPage;
+  const currentPage = isServerSide ? externalPage || 1 : internalPage;
   const totalCount = isServerSide ? externalTotal : items.length;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
-  // Slice data for client-side pagination
   const displayedItems = isServerSide
     ? items
     : items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -50,19 +48,20 @@ export function AdminTable<T>({
     }
   };
 
+  const resolvedEmpty = emptyMessage ?? t.table.empty;
+
   return (
     <div className="w-full space-y-4">
-      {/* Table Container */}
-      <div 
+      <div
         className="overflow-x-auto rounded-lg shadow-sm"
         style={{
           border: "1px solid var(--color-border)",
           backgroundColor: "var(--color-surface)",
         }}
       >
-        <table className="min-w-full text-sm text-left">
+        <table className="min-w-full text-sm text-start">
           {headers && (
-            <thead 
+            <thead
               style={{
                 backgroundColor: "var(--color-background-soft)",
                 color: "var(--color-primary)",
@@ -73,7 +72,7 @@ export function AdminTable<T>({
               {headers}
             </thead>
           )}
-          <tbody 
+          <tbody
             className="divide-y"
             style={{ borderColor: "var(--color-border)" }}
           >
@@ -93,7 +92,7 @@ export function AdminTable<T>({
                   className="py-8 text-center"
                   style={{ color: "var(--color-foreground-muted)" }}
                 >
-                  {emptyMessage}
+                  {resolvedEmpty}
                 </td>
               </tr>
             )}
@@ -101,26 +100,34 @@ export function AdminTable<T>({
         </table>
       </div>
 
-      {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div 
+        <div
           className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs px-1"
           style={{ color: "var(--color-foreground-muted)" }}
         >
           <div>
-            Showing{" "}
-            <span className="font-semibold" style={{ color: "var(--color-primary)" }}>
+            {t.table.showing}{" "}
+            <span
+              className="font-semibold"
+              style={{ color: "var(--color-primary)" }}
+            >
               {Math.min((currentPage - 1) * pageSize + 1, totalCount)}
             </span>{" "}
-            to{" "}
-            <span className="font-semibold" style={{ color: "var(--color-primary)" }}>
+            {t.table.to}{" "}
+            <span
+              className="font-semibold"
+              style={{ color: "var(--color-primary)" }}
+            >
               {Math.min(currentPage * pageSize, totalCount)}
             </span>{" "}
-            of{" "}
-            <span className="font-semibold" style={{ color: "var(--color-primary)" }}>
+            {t.table.of}{" "}
+            <span
+              className="font-semibold"
+              style={{ color: "var(--color-primary)" }}
+            >
               {totalCount}
             </span>{" "}
-            entries
+            {t.table.entries}
           </div>
 
           <div className="flex items-center gap-1">
@@ -135,10 +142,13 @@ export function AdminTable<T>({
                 color: "var(--color-foreground)",
               }}
             >
-              Previous
+              {t.table.previous}
             </button>
 
-            <span className="px-3 py-1.5 font-medium" style={{ color: "var(--color-primary)" }}>
+            <span
+              className="px-3 py-1.5 font-medium"
+              style={{ color: "var(--color-primary)" }}
+            >
               {currentPage} / {totalPages}
             </span>
 
@@ -153,7 +163,7 @@ export function AdminTable<T>({
                 color: "var(--color-foreground)",
               }}
             >
-              Next
+              {t.table.next}
             </button>
           </div>
         </div>

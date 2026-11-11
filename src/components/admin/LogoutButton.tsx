@@ -1,11 +1,13 @@
 "use client";
 
+import { useAdminT } from "@/app/hooks/useAdminT";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LogoutButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { t } = useAdminT();
 
   async function handleLogout() {
     setLoading(true);
@@ -42,7 +44,7 @@ export default function LogoutButton() {
         <polyline points="16 17 21 12 16 7" />
         <line x1="21" y1="12" x2="9" y2="12" />
       </svg>
-      {loading ? "Signing out…" : "Sign out"}
+      {loading ? t.logout.signingOut : t.logout.signOut}
     </button>
   );
 }

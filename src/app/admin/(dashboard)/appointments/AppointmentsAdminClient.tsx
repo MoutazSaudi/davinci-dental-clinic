@@ -6,10 +6,30 @@ import {
   AppointmentAdmin,
   AppointmentStatus,
   DoctorOption,
-  STATUS_LABEL,
-  STATUS_STYLES,
-  formatDateTime,
 } from "./types";
+import { useAdminT } from "@/app/hooks/useAdminT";
+
+const STATUS_STYLES: Record<AppointmentStatus, string> = {
+  PENDING:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  CONFIRMED:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+  COMPLETED:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  NO_SHOW: "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+};
+
+function formatDateTime(iso: string, locale: "en" | "ar"): string {
+  try {
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-SY" : "en-GB", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
 
 export default function AppointmentsAdminClient() {
   const [items, setItems] = useState<AppointmentAdmin[]>([]);
@@ -17,6 +37,7 @@ export default function AppointmentsAdminClient() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [detail, setDetail] = useState<AppointmentAdmin | null>(null);
+  const { t, locale, isRtl } = useAdminT();
 
   useEffect(() => {
     void bootstrap();
@@ -40,11 +61,13 @@ export default function AppointmentsAdminClient() {
     const data = await res.json();
     if (Array.isArray(data)) {
       setDoctors(
-        data.map((d: { id: string; slug: string; name: { en: string; ar: string } }) => ({
-          id: d.id,
-          slug: d.slug,
-          name: d.name,
-        }))
+        data.map(
+          (d: { id: string; slug: string; name: { en: string; ar: string } }) => ({
+            id: d.id,
+            slug: d.slug,
+            name: d.name,
+          })
+        )
       );
     }
   }
@@ -67,7 +90,7 @@ export default function AppointmentsAdminClient() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this appointment?")) return;
+    if (!confirm(t.appointments.deleteConfirm)) return;
     await fetch(`/api/admin/appointments?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
@@ -92,48 +115,48 @@ export default function AppointmentsAdminClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1
           className="text-3xl font-bold tracking-tight"
           style={{ color: "var(--color-primary)" }}
         >
-          Appointments
+          {t.appointments.title}
         </h1>
         <p
           className="text-sm mt-1"
           style={{ color: "var(--color-foreground-muted)" }}
         >
-          Manage patient bookings and assign doctors.
+          {t.appointments.description}
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Total" value={stats.total} />
-        <StatCard label="Pending" value={stats.pending} />
-        <StatCard label="Confirmed" value={stats.confirmed} />
-        <StatCard label="Today" value={stats.today} />
+        <StatCard label={t.appointments.statTotal} value={stats.total} />
+        <StatCard label={t.appointments.statPending} value={stats.pending} />
+        <StatCard
+          label={t.appointments.statConfirmed}
+          value={stats.confirmed}
+        />
+        <StatCard label={t.appointments.statToday} value={stats.today} />
       </div>
 
-      {/* Table */}
       {loading ? (
-        <div className="rounded-xl border p-8 text-center text-sm text-gray-500">
-          Loading appointments…
+        <div className="rounded-xl border p-8 text-center text-sm text-[var(--color-foreground-muted)]">
+          {t.appointments.loading}
         </div>
       ) : (
         <AdminTable<AppointmentAdmin>
           items={items}
           pageSize={8}
-          emptyMessage="No appointment requests yet."
+          emptyMessage={t.appointments.empty}
           headers={
             <tr>
-              <th className="p-3 text-left">Patient</th>
-              <th className="p-3 text-left">Scheduled</th>
-              <th className="p-3 text-left">Doctor</th>
-              <th className="p-3 text-left">Service</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Actions</th>
+              <th className="p-3 text-start">{t.appointments.patient}</th>
+              <th className="p-3 text-start">{t.appointments.scheduled}</th>
+              <th className="p-3 text-start">{t.appointments.doctor}</th>
+              <th className="p-3 text-start">{t.appointments.service}</th>
+              <th className="p-3 text-start">{t.common.status}</th>
+              <th className="p-3 text-start">{t.common.actions}</th>
             </tr>
           }
           renderRow={(item) => {
@@ -167,7 +190,7 @@ export default function AppointmentsAdminClient() {
                   className="p-3 align-middle text-xs"
                   style={{ color: "var(--color-foreground)" }}
                 >
-                  {formatDateTime(item.scheduledAt, "en")}
+                  {formatDateTime(item.scheduledAt, locale)}
                 </td>
 
                 <td className="p-3 align-middle">
@@ -180,14 +203,14 @@ export default function AppointmentsAdminClient() {
                     className="py-1 px-2 border rounded-md text-xs outline-none w-full max-w-[180px]"
                     style={{
                       borderColor: "var(--color-border)",
-                      backgroundColor: "var(--color-background)",
+                      backgroundColor: "var(--color-surface)",
                       color: "var(--color-foreground)",
                     }}
                   >
-                    <option value="">— Unassigned —</option>
+                    <option value="">{t.appointments.unassigned}</option>
                     {doctors.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.name.en}
+                        {d.name[locale] || d.name.en}
                       </option>
                     ))}
                   </select>
@@ -213,13 +236,19 @@ export default function AppointmentsAdminClient() {
                       STATUS_STYLES[item.status]
                     }`}
                   >
-                    {(Object.keys(STATUS_LABEL) as AppointmentStatus[]).map(
-                      (s) => (
-                        <option key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </option>
-                      )
-                    )}
+                    {(
+                      [
+                        "PENDING",
+                        "CONFIRMED",
+                        "CANCELLED",
+                        "COMPLETED",
+                        "NO_SHOW",
+                      ] as AppointmentStatus[]
+                    ).map((s) => (
+                      <option key={s} value={s}>
+                        {t.status[s]}
+                      </option>
+                    ))}
                   </select>
                 </td>
 
@@ -233,13 +262,13 @@ export default function AppointmentsAdminClient() {
                         color: "var(--color-foreground)",
                       }}
                     >
-                      View
+                      {t.appointments.view}
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="py-1.5 px-3 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition-colors"
+                      className="py-1.5 px-3 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition-colors dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/30"
                     >
-                      Delete
+                      {t.common.delete}
                     </button>
                   </div>
                 </td>
@@ -249,47 +278,65 @@ export default function AppointmentsAdminClient() {
         />
       )}
 
-      {/* Detail modal */}
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl relative">
-            <div className="flex items-center justify-between mb-4 border-b pb-3">
-              <h3 className="text-lg font-bold">Appointment details</h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          dir={isRtl ? "rtl" : "ltr"}
+        >
+          <div className="bg-[var(--color-surface)] rounded-xl max-w-lg w-full p-6 shadow-xl relative">
+            <div className="flex items-center justify-between mb-4 border-b border-[var(--color-border)] pb-3">
+              <h3 className="text-lg font-bold text-[var(--color-foreground)]">
+                {t.appointments.detailsTitle}
+              </h3>
               <button
                 onClick={() => setDetail(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                aria-label={t.common.close}
+                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] text-xl font-bold"
               >
                 ✕
               </button>
             </div>
 
             <dl className="space-y-3 text-sm">
-              <Row label="Patient" value={detail.patientName} />
-              <Row label="Phone" value={detail.patientPhone} />
-              <Row label="Email" value={detail.patientEmail || "—"} />
               <Row
-                label="Scheduled"
-                value={formatDateTime(detail.scheduledAt, "en")}
+                label={t.appointments.patient}
+                value={detail.patientName}
+              />
+              <Row label={t.appointments.phone} value={detail.patientPhone} />
+              <Row
+                label={t.appointments.email}
+                value={detail.patientEmail || "—"}
               />
               <Row
-                label="Doctor"
-                value={detail.doctor?.name.en ?? "Unassigned"}
+                label={t.appointments.scheduled}
+                value={formatDateTime(detail.scheduledAt, locale)}
               />
-              <Row label="Service" value={detail.serviceSlug || "—"} />
               <Row
-                label="Status"
+                label={t.appointments.doctor}
+                value={
+                  detail.doctor?.name[locale] ||
+                  detail.doctor?.name.en ||
+                  t.appointments.unassignedShort
+                }
+              />
+              <Row
+                label={t.appointments.service}
+                value={detail.serviceSlug || "—"}
+              />
+              <Row
+                label={t.common.status}
                 value={
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                       STATUS_STYLES[detail.status]
                     }`}
                   >
-                    {STATUS_LABEL[detail.status]}
+                    {t.status[detail.status]}
                   </span>
                 }
               />
               <Row
-                label="Notes"
+                label={t.appointments.notes}
                 value={
                   <span className="whitespace-pre-wrap">
                     {detail.notes || "—"}
@@ -297,8 +344,8 @@ export default function AppointmentsAdminClient() {
                 }
               />
               <Row
-                label="Created"
-                value={formatDateTime(detail.createdAt, "en")}
+                label={t.appointments.created}
+                value={formatDateTime(detail.createdAt, locale)}
               />
             </dl>
 
@@ -308,7 +355,7 @@ export default function AppointmentsAdminClient() {
                 className="py-2 px-4 text-white rounded-lg text-sm font-medium"
                 style={{ backgroundColor: "var(--color-primary)" }}
               >
-                Close
+                {t.common.close}
               </button>
             </div>
           </div>
@@ -358,10 +405,7 @@ function Row({
       >
         {label}
       </dt>
-      <dd
-        className="flex-1"
-        style={{ color: "var(--color-foreground)" }}
-      >
+      <dd className="flex-1" style={{ color: "var(--color-foreground)" }}>
         {value}
       </dd>
     </div>

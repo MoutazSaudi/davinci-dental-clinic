@@ -2,24 +2,43 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const ERRORS: Record<string, string> = {
-  invalid_credentials: "Incorrect username or password.",
-  too_many_attempts: "Too many attempts. Please try again in 15 minutes.",
-  invalid_input: "Please enter a valid username and password.",
-};
+import PasswordInput from "@/components/admin/PasswordInput";
+import { useAdminT } from "@/app/hooks/useAdminT";
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [errorFallback, setErrorFallback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { t, locale, toggleLocale } = useAdminT();
+
+  function resolveError(key: string | undefined): void {
+    if (!key) {
+      setErrorFallback(t.login.loginFailed);
+      setErrorKey(null);
+      return;
+    }
+    if (key === "invalid_credentials") {
+      setErrorKey(t.login.invalidCredentials);
+    } else if (key === "too_many_attempts") {
+      setErrorKey(t.login.tooManyAttempts);
+    } else if (key === "invalid_input") {
+      setErrorKey(t.login.invalidInput);
+    } else {
+      setErrorFallback(t.login.loginFailed);
+      setErrorKey(null);
+    }
+  }
+
+  const error = errorKey ?? errorFallback;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setErrorKey(null);
+    setErrorFallback(null);
 
     try {
       const res = await fetch("/api/admin/login", {
@@ -30,30 +49,54 @@ export default function AdminLoginPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(ERRORS[data?.error as string] ?? "Login failed.");
+        resolveError(data?.error);
         return;
       }
 
       router.push("/admin");
       router.refresh();
     } catch {
-      setError("Network error.");
+      setErrorFallback(t.login.networkError);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-md bg-white rounded-lg p-8 shadow">
-        <h2 className="text-2xl font-semibold mb-2" style={{ color: "#0B3B5A" }}>
-          Admin Login
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] p-6">
+      <div className="w-full max-w-md bg-[var(--color-surface)] rounded-lg p-8 shadow relative">
+        <button
+          type="button"
+          onClick={toggleLocale}
+          className="absolute top-3 right-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-background-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--color-foreground)] transition hover:bg-[var(--color-surface)]"
+          aria-label={
+            locale === "ar"
+              ? t.login.switchToEnglish
+              : t.login.switchToArabic
+          }
+        >
+          {locale === "ar" ? "EN" : "ع"}
+        </button>
+
+        <h2
+          className="text-2xl font-semibold mb-2"
+          style={{ color: "var(--color-primary)" }}
+        >
+          {t.login.title}
         </h2>
-        <p className="text-sm text-gray-600 mb-6">Sign in to manage the clinic</p>
+        <p className="text-sm text-[var(--color-foreground-muted)] mb-6">
+          {t.login.subtitle}
+        </p>
 
         <form onSubmit={handleSubmit}>
-          <label className="block mb-2 text-sm font-medium">Username</label>
+          <label
+            htmlFor="admin-username"
+            className="block mb-2 text-sm font-medium"
+          >
+            {t.login.username}
+          </label>
           <input
+            id="admin-username"
             className="w-full mb-4 p-2 border rounded"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -66,28 +109,43 @@ export default function AdminLoginPage() {
             aria-describedby={error ? "admin-login-error" : undefined}
           />
 
-          <label className="block mb-2 text-sm font-medium">Password</label>
-          <input
-            className="w-full mb-4 p-2 border rounded"
+          <label
+            htmlFor="admin-password"
+            className="block mb-2 text-sm font-medium"
+          >
+            {t.login.password}
+          </label>
+          <PasswordInput
+            id="admin-password"
+            wrapperClassName="mb-4"
+            className="w-full p-2 border rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            type="password"
             autoComplete="current-password"
             required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "admin-login-error" : undefined}
+            showLabel={t.login.showPassword}
+            hideLabel={t.login.hidePassword}
           />
 
           {error && (
-            <div id="admin-login-error" className="text-sm text-red-600 mb-3" role="alert">
+            <div
+              id="admin-login-error"
+              className="text-sm text-red-600 mb-3"
+              role="alert"
+            >
               {error}
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full py-2 px-4 rounded bg-[#0B3B5A] text-white hover:opacity-95 disabled:opacity-60"
+            className="w-full py-2 px-4 rounded text-white hover:opacity-95 disabled:opacity-60"
+            style={{ backgroundColor: "var(--color-primary)" }}
             disabled={loading}
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? t.login.submitting : t.login.submit}
           </button>
         </form>
       </div>

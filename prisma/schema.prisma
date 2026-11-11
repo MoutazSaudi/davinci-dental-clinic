@@ -26,6 +26,16 @@ enum AdminRole {
   EDITOR
 }
 
+enum AdminPermission {
+  OVERVIEW
+  APPOINTMENTS
+  MESSAGES
+  DOCTORS
+  GALLERY
+  FAQ
+  SERVICES
+}
+
 enum MessageStatus {
   NEW
   READ
@@ -40,13 +50,20 @@ enum MessageSource {
 
 // ───────────────────────── Admin users ─────────────────────────
 model AdminUser {
-  id           String    @id @default(cuid())
-  username     String    @unique
-  name         String?
-  passwordHash String
-  role         AdminRole @default(ADMIN)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                 String            @id @default(cuid())
+  username           String            @unique
+  name               String?
+  passwordHash       String
+  role               AdminRole         @default(EDITOR)
+  permissions        AdminPermission[] @default([])
+  isActive           Boolean           @default(true)
+  mustChangePassword Boolean           @default(false)
+  lastLoginAt        DateTime?
+  createdById        String?
+  createdBy          AdminUser?        @relation("CreatedAdmins", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAdmins      AdminUser[]       @relation("CreatedAdmins")
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 }
 // ───────────────────────── Services ─────────────────────────
 

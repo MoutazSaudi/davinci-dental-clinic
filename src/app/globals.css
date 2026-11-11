@@ -205,7 +205,7 @@ html {
 body {
   margin: 0;
   background: var(--background);
-  color: var(--color-primary);
+  color: var(--color-foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -443,16 +443,18 @@ button {
   padding-inline: 0.875rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: var(--color-surface);
   color: var(--color-foreground);
   outline: none;
   transition:
     border-color var(--transition-fast),
+    background-color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
 .input::placeholder {
   color: var(--color-foreground-light);
+  opacity: 0.9;
 }
 
 .input:hover {
@@ -460,10 +462,82 @@ button {
 }
 
 .input:focus {
-  border-color: var(--color-teal);
-  box-shadow: 0 0 0 3px rgba(43, 122, 120, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
+/* Dark mode: lift fields slightly off the surface for visible separation */
+html.dark .input {
+  background-color: var(--color-surface-soft);
+  border-color: var(--color-border-dark);
+}
+
+/* ---------------------------------------------------------
+   Universal text-field base
+   Ensures readable background/foreground in BOTH themes
+   for any input/textarea/select that doesn't use .input
+   --------------------------------------------------------- */
+input:is(
+    [type="text"],
+    [type="email"],
+    [type="password"],
+    [type="search"],
+    [type="tel"],
+    [type="url"],
+    [type="number"],
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  ):not(.input):not(.no-input-style),
+textarea:not(.input):not(.no-input-style),
+select:not(.input):not(.no-input-style) {
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+  border-color: var(--color-border);
+}
+
+input:is(
+    [type="text"],
+    [type="email"],
+    [type="password"],
+    [type="search"],
+    [type="tel"],
+    [type="url"],
+    [type="number"]
+  )::placeholder,
+textarea::placeholder {
+  color: var(--color-foreground-light);
+  opacity: 0.9;
+}
+
+/* Dark mode: subtle background differentiation so fields stand out */
+html.dark input:is(
+    [type="text"],
+    [type="email"],
+    [type="password"],
+    [type="search"],
+    [type="tel"],
+    [type="url"],
+    [type="number"],
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  ):not(.input):not(.no-input-style),
+html.dark textarea:not(.input):not(.no-input-style),
+html.dark select:not(.input):not(.no-input-style) {
+  background-color: var(--color-surface-soft);
+  border-color: var(--color-border-dark);
+}
+
+/* Native <select> dropdown panel must match the theme too */
+html.dark select option {
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+}
 /* =========================================================
    Section Helpers
    ========================================================= */

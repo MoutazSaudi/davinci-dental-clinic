@@ -1,11 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import React from "react";
-import { requireAdminServer } from "@/lib/auth";
+import { requirePermissionServer } from "@/lib/auth";
 import AppointmentsAdminClient from "./AppointmentsAdminClient";
 
 export default async function AppointmentsPage() {
-  await requireAdminServer();
+  await requirePermissionServer("APPOINTMENTS");
   return (
     <div className="container mx-auto">
       <AppointmentsAdminClient />

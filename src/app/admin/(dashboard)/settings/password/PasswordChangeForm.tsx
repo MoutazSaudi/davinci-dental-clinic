@@ -1,13 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-const ERRORS: Record<string, string> = {
-  invalid_input: "Please fill all fields (new password ≥ 8 chars).",
-  wrong_current_password: "Current password is incorrect.",
-  same_password: "New password must be different from the current one.",
-  unauthorized: "Please sign in again.",
-};
+import PasswordInput from "@/components/admin/PasswordInput";
+import { useAdminT } from "@/app/hooks/useAdminT";
 
 export default function PasswordChangeForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -16,6 +11,7 @@ export default function PasswordChangeForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useAdminT();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,11 +19,11 @@ export default function PasswordChangeForm() {
     setSuccess(false);
 
     if (newPassword.length < 8) {
-      setError("New password must be at least 8 characters.");
+      setError(t.password.errorMinLength);
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("New password and confirmation do not match.");
+      setError(t.password.errorMismatch);
       return;
     }
 
@@ -41,7 +37,14 @@ export default function PasswordChangeForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(ERRORS[data?.error as string] ?? "Failed to change password.");
+        const key = data?.error as string | undefined;
+        const map: Record<string, string> = {
+          invalid_input: t.password.errorInvalidInput,
+          wrong_current_password: t.password.errorWrongCurrent,
+          same_password: t.password.errorSamePassword,
+          unauthorized: t.password.errorUnauthorized,
+        };
+        setError(key && map[key] ? map[key] : t.password.errorFailed);
         return;
       }
 
@@ -50,7 +53,7 @@ export default function PasswordChangeForm() {
       setNewPassword("");
       setConfirmPassword("");
     } catch {
-      setError("Network error.");
+      setError(t.common.networkError);
     } finally {
       setLoading(false);
     }
@@ -59,52 +62,70 @@ export default function PasswordChangeForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold" style={{ color: "var(--color-primary)" }}>
-          Change Password
+        <h2
+          className="text-2xl font-semibold"
+          style={{ color: "var(--color-primary)" }}
+        >
+          {t.password.title}
         </h2>
-        <p className="text-sm" style={{ color: "var(--color-foreground-muted)" }}>
-          Enter your current password and choose a new one.
+        <p
+          className="text-sm"
+          style={{ color: "var(--color-foreground-muted)" }}
+        >
+          {t.password.description}
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
         className="p-6 rounded-xl border shadow-sm space-y-4"
-        style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+        style={{
+          backgroundColor: "var(--color-surface)",
+          borderColor: "var(--color-border)",
+        }}
       >
         <div>
-          <label className="block mb-1 text-sm font-medium">Current Password</label>
-          <input
-            type="password"
+          <label className="block mb-1 text-sm font-medium">
+            {t.password.currentPassword}
+          </label>
+          <PasswordInput
             className="w-full p-2 border rounded"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             autoComplete="current-password"
             required
+            showLabel={t.login.showPassword}
+            hideLabel={t.login.hidePassword}
           />
         </div>
 
         <div>
-          <label className="block mb-1 text-sm font-medium">New Password (min 8 chars)</label>
-          <input
-            type="password"
+          <label className="block mb-1 text-sm font-medium">
+            {t.password.newPassword}
+          </label>
+          <PasswordInput
             className="w-full p-2 border rounded"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             autoComplete="new-password"
             required
+            showLabel={t.login.showPassword}
+            hideLabel={t.login.hidePassword}
           />
         </div>
 
         <div>
-          <label className="block mb-1 text-sm font-medium">Confirm New Password</label>
-          <input
-            type="password"
+          <label className="block mb-1 text-sm font-medium">
+            {t.password.confirmPassword}
+          </label>
+          <PasswordInput
             className="w-full p-2 border rounded"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             autoComplete="new-password"
             required
+            showLabel={t.login.showPassword}
+            hideLabel={t.login.hidePassword}
           />
         </div>
 
@@ -115,7 +136,7 @@ export default function PasswordChangeForm() {
         )}
         {success && (
           <div className="text-sm text-green-600" role="status">
-            Password updated successfully.
+            {t.password.success}
           </div>
         )}
 
@@ -125,7 +146,7 @@ export default function PasswordChangeForm() {
           className="py-2 px-4 text-white font-medium rounded-lg hover:opacity-90 disabled:opacity-60"
           style={{ backgroundColor: "var(--color-primary)" }}
         >
-          {loading ? "Updating…" : "Update Password"}
+          {loading ? t.password.submitting : t.password.submit}
         </button>
       </form>
     </div>

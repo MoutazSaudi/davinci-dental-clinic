@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminApi } from "@/lib/auth";
+import { requirePermissionApi } from "@/lib/auth";
 
 const patchSchema = z.object({
   status: z
@@ -67,7 +67,7 @@ const includeDoctor = {
 };
 
 export async function GET() {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("APPOINTMENTS");
   if (auth instanceof NextResponse) return auth;
 
   const items = await prisma.appointment.findMany({
@@ -79,7 +79,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("APPOINTMENTS" );
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");
@@ -117,7 +117,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("APPOINTMENTS");
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminT } from "@/app/hooks/useAdminT";
 import React, { useRef, useState } from "react";
 
 interface ImageUploaderProps {
@@ -21,26 +22,27 @@ export default function ImageUploader({
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState("");
+  const { t } = useAdminT();
 
   async function uploadFiles(files: File[]) {
     setError(null);
 
     const imageFiles = files.filter((f) => f.type.startsWith("image/"));
     if (imageFiles.length === 0) {
-      setError("Only image files are allowed.");
+      setError(t.uploader.onlyImages);
       return;
     }
 
     const tooBig = imageFiles.filter((f) => f.size > maxSizeMB * 1024 * 1024);
     const valid = imageFiles.filter((f) => f.size <= maxSizeMB * 1024 * 1024);
     if (tooBig.length > 0) {
-      setError(`${tooBig.length} file(s) exceed ${maxSizeMB}MB and were skipped.`);
+      setError(t.uploader.tooBig(tooBig.length, maxSizeMB));
     }
     if (valid.length === 0) return;
 
     const remaining = maxImages - images.length;
     if (remaining <= 0) {
-      setError(`Maximum of ${maxImages} images reached.`);
+      setError(t.uploader.maxReached(maxImages));
       return;
     }
 
@@ -48,8 +50,8 @@ export default function ImageUploader({
     if (valid.length > remaining) {
       setError((prev) =>
         prev
-          ? `${prev} Only ${remaining} more image(s) allowed.`
-          : `Only ${remaining} more image(s) allowed.`
+          ? `${prev} ${t.uploader.onlyMore(remaining)}`
+          : t.uploader.onlyMore(remaining)
       );
     }
 
@@ -65,7 +67,7 @@ export default function ImageUploader({
           method: "POST",
           body: fd,
         });
-        if (!res.ok) throw new Error(`Upload failed for ${toUpload[i].name}`);
+        if (!res.ok) throw new Error(t.uploader.uploadFailed(toUpload[i].name));
         const data = await res.json();
         if (data?.url) uploadedUrls.push(data.url);
       } catch (e) {
@@ -113,7 +115,7 @@ export default function ImageUploader({
     const url = urlInput.trim();
     if (!url) return;
     if (images.length >= maxImages) {
-      setError(`Maximum of ${maxImages} images reached.`);
+      setError(t.uploader.maxReached(maxImages));
       return;
     }
     onChange([...images, url]);
@@ -122,7 +124,6 @@ export default function ImageUploader({
 
   return (
     <div className="space-y-4">
-      {/* Drop zone */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -138,8 +139,8 @@ export default function ImageUploader({
         }}
         className={`relative rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
           isDragging
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400 bg-gray-50"
+            ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)]"
+            : "border-[var(--color-border)] hover:border-[var(--color-border-dark)] bg-[var(--color-background-soft)]"
         } ${uploading ? "opacity-60 cursor-wait" : ""}`}
       >
         <input
@@ -161,7 +162,7 @@ export default function ImageUploader({
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-gray-400"
+            className="text-[var(--color-foreground-muted)]"
             aria-hidden="true"
           >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -170,51 +171,49 @@ export default function ImageUploader({
           </svg>
 
           {uploading ? (
-            <div className="text-sm font-medium text-gray-700">
-              Uploading {progress.done}/{progress.total}…
+            <div className="text-sm font-medium text-[var(--color-foreground)]">
+              {t.uploader.uploadingProgress(progress.done, progress.total)}
             </div>
           ) : (
             <>
-              <div className="text-sm font-medium text-gray-700">
-                {isDragging ? "Drop images here" : "Drag & drop images here"}
+              <div className="text-sm font-medium text-[var(--color-foreground)]">
+                {isDragging ? t.uploader.dropHere : t.uploader.dragDropHere}
               </div>
-              <div className="text-xs text-gray-500">
-                or click to browse • PNG, JPG, WebP • max {maxSizeMB}MB each
+              <div className="text-xs text-[var(--color-foreground-muted)]">
+                {t.uploader.browseHint(maxSizeMB)}
               </div>
             </>
           )}
         </div>
 
         {uploading && progress.total > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-b-xl overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--color-border)] rounded-b-xl overflow-hidden">
             <div
-              className="h-full bg-blue-500 transition-all"
+              className="h-full bg-[var(--color-primary)] transition-all"
               style={{ width: `${(progress.done / progress.total) * 100}%` }}
             />
           </div>
         )}
       </div>
 
-      {/* Error */}
       {error && (
-        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/50">
           {error}
         </div>
       )}
 
-      {/* Preview grid */}
       {images.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-gray-600">
-              Images ({images.length})
+            <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              {t.uploader.imagesCount(images.length)}
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {images.map((url, i) => (
               <div
                 key={`${url}-${i}`}
-                className="relative group rounded-md overflow-hidden border bg-gray-50"
+                className="relative group rounded-md overflow-hidden border bg-[var(--color-background-soft)]"
                 style={{ borderColor: "var(--color-border)" }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -230,7 +229,7 @@ export default function ImageUploader({
                   type="button"
                   onClick={() => removeImage(i)}
                   className="absolute top-1 right-1 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={`Remove image ${i + 1}`}
+                  aria-label={t.uploader.removeImage(i)}
                 >
                   ✕
                 </button>
@@ -240,10 +239,9 @@ export default function ImageUploader({
         </div>
       )}
 
-      {/* Add by URL fallback */}
       <div>
-        <div className="text-xs font-medium uppercase tracking-wide text-gray-600 mb-1">
-          Or add image by URL
+        <div className="text-xs font-medium uppercase tracking-wide text-[var(--color-foreground-muted)] mb-1">
+          {t.uploader.addByUrl}
         </div>
         <div className="flex gap-2">
           <input
@@ -257,15 +255,15 @@ export default function ImageUploader({
                 addUrl();
               }
             }}
-            placeholder="/images/gallary/g01.webp"
+            placeholder={t.uploader.urlPlaceholder}
           />
           <button
             type="button"
             onClick={addUrl}
-            className="py-2 px-3 border rounded text-sm font-medium hover:bg-gray-50"
+            className="py-2 px-3 border rounded text-sm font-medium hover:bg-[var(--color-background-soft)]"
             style={{ borderColor: "var(--color-border)" }}
           >
-            Add
+            {t.uploader.add}
           </button>
         </div>
       </div>

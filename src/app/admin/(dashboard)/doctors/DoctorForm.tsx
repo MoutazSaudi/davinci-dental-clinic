@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { DoctorAdmin, DoctorDraft, emptyDoctorDraft } from "./types";
 import ImageUploader from "@/components/admin/ImageUploader";
+import { useAdminT } from "@/app/hooks/useAdminT";
 
 interface DoctorFormProps {
   open: boolean;
@@ -20,6 +21,7 @@ export default function DoctorForm({
   const [draft, setDraft] = useState<DoctorDraft>(emptyDoctorDraft);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const { t, isRtl } = useAdminT();
 
   useEffect(() => {
     if (!open) return;
@@ -45,9 +47,9 @@ export default function DoctorForm({
     e?.preventDefault();
     setError(null);
 
-    if (!draft.slug.trim()) return setError("Slug is required.");
+    if (!draft.slug.trim()) return setError(t.doctors.errorSlug);
     if (!draft.name.en.trim() || !draft.name.ar.trim())
-      return setError("Both English and Arabic names are required.");
+      return setError(t.doctors.errorNames);
 
     setSaving(true);
     try {
@@ -63,18 +65,13 @@ export default function DoctorForm({
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(
-          typeof data?.error === "string"
-            ? data.error
-            : "Failed to save doctor."
-        );
+        setError(t.doctors.errorSaveFailed);
         return;
       }
 
       await onSaved();
     } catch {
-      setError("Network error.");
+      setError(t.common.networkError);
     } finally {
       setSaving(false);
     }
@@ -83,23 +80,24 @@ export default function DoctorForm({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl max-w-3xl w-full my-8 shadow-xl relative">
-        <div className="flex items-center justify-between px-6 py-4 border-b bg-white rounded-t-xl">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto"
+      dir={isRtl ? "rtl" : "ltr"}
+    >
+      <div className="bg-[var(--color-surface)] rounded-xl max-w-3xl w-full my-8 shadow-xl relative">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
           <div>
-            <h3 className="text-lg font-bold">
-              {editing ? "Edit Doctor" : "New Doctor"}
+            <h3 className="text-lg font-bold text-[var(--color-foreground)]">
+              {editing ? t.doctors.formTitleEdit : t.doctors.formTitleNew}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {editing
-                ? "Update doctor details."
-                : "Add a new doctor to the team."}
+            <p className="text-xs text-[var(--color-foreground-muted)] mt-0.5">
+              {editing ? t.doctors.formDescEdit : t.doctors.formDescNew}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-            aria-label="Close"
+            className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)] text-xl font-bold"
+            aria-label={t.common.close}
             type="button"
           >
             ✕
@@ -111,28 +109,35 @@ export default function DoctorForm({
           onSubmit={handleSubmit}
           className="px-6 py-5 space-y-6 max-h-[calc(100vh-16rem)] overflow-y-auto"
         >
-          {/* Basic */}
-          <Section title="Basic Information" description="Identifiers and visibility">
+          <Section
+            title={t.doctors.sectionBasic}
+            description={t.doctors.sectionBasicDesc}
+          >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Field label="Slug" hint="URL-safe">
+              <Field label={t.common.slug} hint={t.doctors.slugHint}>
                 <input
                   className="w-full p-2 border rounded text-sm font-mono"
                   value={draft.slug}
-                  onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
+                  onChange={(e) =>
+                    setDraft({ ...draft, slug: e.target.value })
+                  }
                   placeholder="dr-mouhannad-saudi"
                 />
               </Field>
-              <Field label="Sort order" hint="Lower = first">
+              <Field label={t.common.sortOrder} hint={t.doctors.sortOrderHint}>
                 <input
                   type="number"
                   className="w-full p-2 border rounded text-sm"
                   value={draft.sortOrder}
                   onChange={(e) =>
-                    setDraft({ ...draft, sortOrder: Number(e.target.value) || 0 })
+                    setDraft({
+                      ...draft,
+                      sortOrder: Number(e.target.value) || 0,
+                    })
                   }
                 />
               </Field>
-              <Field label="Status">
+              <Field label={t.common.status}>
                 <select
                   className="w-full p-2 border rounded text-sm"
                   value={draft.status}
@@ -143,52 +148,63 @@ export default function DoctorForm({
                     })
                   }
                 >
-                  <option value="PUBLISHED">Published</option>
-                  <option value="DRAFT">Draft</option>
-                  <option value="ARCHIVED">Archived</option>
+                  <option value="PUBLISHED">{t.status.PUBLISHED}</option>
+                  <option value="DRAFT">{t.status.DRAFT}</option>
+                  <option value="ARCHIVED">{t.status.ARCHIVED}</option>
                 </select>
               </Field>
             </div>
           </Section>
 
-          {/* Bilingual */}
-          <Section title="Bilingual Content" description="Names, specialties, bios">
+          <Section
+            title={t.doctors.sectionBilingual}
+            description={t.doctors.sectionBilingualDesc}
+          >
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Name (EN)">
+                <Field label={t.doctors.nameEn}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     value={draft.name.en}
                     onChange={(e) =>
-                      setDraft({ ...draft, name: { ...draft.name, en: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        name: { ...draft.name, en: e.target.value },
+                      })
                     }
                   />
                 </Field>
-                <Field label="Name (AR)">
+                <Field label={t.doctors.nameAr}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     dir="rtl"
                     value={draft.name.ar}
                     onChange={(e) =>
-                      setDraft({ ...draft, name: { ...draft.name, ar: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        name: { ...draft.name, ar: e.target.value },
+                      })
                     }
                   />
                 </Field>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Specialization (EN)">
+                <Field label={t.doctors.specializationEn}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     value={draft.specialization.en}
                     onChange={(e) =>
                       setDraft({
                         ...draft,
-                        specialization: { ...draft.specialization, en: e.target.value },
+                        specialization: {
+                          ...draft.specialization,
+                          en: e.target.value,
+                        },
                       })
                     }
                   />
                 </Field>
-                <Field label="Specialization (AR)">
+                <Field label={t.doctors.specializationAr}>
                   <input
                     className="w-full p-2 border rounded text-sm"
                     dir="rtl"
@@ -196,31 +212,40 @@ export default function DoctorForm({
                     onChange={(e) =>
                       setDraft({
                         ...draft,
-                        specialization: { ...draft.specialization, ar: e.target.value },
+                        specialization: {
+                          ...draft.specialization,
+                          ar: e.target.value,
+                        },
                       })
                     }
                   />
                 </Field>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Bio (EN)">
+                <Field label={t.doctors.bioEn}>
                   <textarea
                     className="w-full p-2 border rounded text-sm"
                     rows={4}
                     value={draft.bio.en}
                     onChange={(e) =>
-                      setDraft({ ...draft, bio: { ...draft.bio, en: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        bio: { ...draft.bio, en: e.target.value },
+                      })
                     }
                   />
                 </Field>
-                <Field label="Bio (AR)">
+                <Field label={t.doctors.bioAr}>
                   <textarea
                     className="w-full p-2 border rounded text-sm"
                     dir="rtl"
                     rows={4}
                     value={draft.bio.ar}
                     onChange={(e) =>
-                      setDraft({ ...draft, bio: { ...draft.bio, ar: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        bio: { ...draft.bio, ar: e.target.value },
+                      })
                     }
                   />
                 </Field>
@@ -228,10 +253,12 @@ export default function DoctorForm({
             </div>
           </Section>
 
-          {/* Social */}
-          <Section title="Links" description="Optional social and website links">
+          <Section
+            title={t.doctors.sectionLinks}
+            description={t.doctors.sectionLinksDesc}
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Instagram URL">
+              <Field label={t.doctors.instagramUrl}>
                 <input
                   className="w-full p-2 border rounded text-sm"
                   value={draft.instagram ?? ""}
@@ -241,7 +268,7 @@ export default function DoctorForm({
                   placeholder="https://instagram.com/..."
                 />
               </Field>
-              <Field label="LinkedIn URL">
+              <Field label={t.doctors.linkedinUrl}>
                 <input
                   className="w-full p-2 border rounded text-sm"
                   value={draft.linkedin ?? ""}
@@ -254,8 +281,10 @@ export default function DoctorForm({
             </div>
           </Section>
 
-          {/* Image */}
-          <Section title="Photo" description="Doctor profile image (portrait recommended)">
+          <Section
+            title={t.doctors.sectionPhoto}
+            description={t.doctors.sectionPhotoDesc}
+          >
             <ImageUploader
               images={draft.image ? [draft.image] : []}
               onChange={(imgs) =>
@@ -268,7 +297,7 @@ export default function DoctorForm({
 
           {error && (
             <div
-              className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+              className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/50"
               role="alert"
             >
               {error}
@@ -276,14 +305,14 @@ export default function DoctorForm({
           )}
         </form>
 
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-background-soft)] rounded-b-xl">
           <button
             type="button"
             onClick={onClose}
-            className="py-2 px-4 border rounded-lg text-sm font-medium bg-white"
+            className="py-2 px-4 border rounded-lg text-sm font-medium bg-[var(--color-surface)]"
             style={{ borderColor: "var(--color-border)" }}
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <button
             type="submit"
@@ -292,7 +321,11 @@ export default function DoctorForm({
             className="py-2 px-4 text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-60 shadow-sm"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
-            {saving ? "Saving…" : editing ? "Save changes" : "Add doctor"}
+            {saving
+              ? t.common.saving
+              : editing
+              ? t.doctors.submitEdit
+              : t.doctors.submitNew}
           </button>
         </div>
       </div>
@@ -312,8 +345,12 @@ function Section({
   return (
     <section className="space-y-3">
       <div>
-        <h4 className="text-sm font-semibold text-gray-800">{title}</h4>
-        <p className="text-xs text-gray-500">{description}</p>
+        <h4 className="text-sm font-semibold text-[var(--color-foreground)]">
+          {title}
+        </h4>
+        <p className="text-xs text-[var(--color-foreground-muted)]">
+          {description}
+        </p>
       </div>
       {children}
     </section>
@@ -332,10 +369,14 @@ function Field({
   return (
     <label className="block">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-gray-600">
+        <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-foreground-muted)]">
           {label}
         </span>
-        {hint && <span className="text-[10px] text-gray-400">{hint}</span>}
+        {hint && (
+          <span className="text-[10px] text-[var(--color-foreground-light)]">
+            {hint}
+          </span>
+        )}
       </div>
       {children}
     </label>

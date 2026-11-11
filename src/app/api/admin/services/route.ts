@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { requireAdminApi } from "@/lib/auth";
+import { requirePermissionApi } from "@/lib/auth";
 
 // تعريف نوع الخدمة مع العلاقات لضمان توافق TypeScript
 type ServiceWithRelations = Prisma.ServiceGetPayload<{
@@ -176,7 +176,7 @@ async function ensureCategory(categoryName: string, localeName?: string) {
 }
 
 export async function GET(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("SERVICES");
   if (auth instanceof NextResponse) return auth;
 
   const services = await prisma.service.findMany({
@@ -191,7 +191,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("SERVICES");
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -279,7 +279,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("SERVICES");
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -421,7 +421,7 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("SERVICES");
   if (auth instanceof NextResponse) return auth;
 
   const slug = new URL(req.url).searchParams.get("slug");

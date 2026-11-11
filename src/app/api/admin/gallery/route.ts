@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminApi } from "@/lib/auth";
+import { requirePermissionApi } from "@/lib/auth";
 
 const gallerySchema = z.object({
   slug: z.string().trim().min(1, "Slug is required"),
@@ -69,7 +69,7 @@ function revalidateGallery() {
 }
 
 export async function GET() {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("GALLERY");
   if (auth instanceof NextResponse) return auth;
 
   const albums = await prisma.galleryAlbum.findMany({
@@ -81,7 +81,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("GALLERY");
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -137,7 +137,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("GALLERY");
   if (auth instanceof NextResponse) return auth;
 
   const url = new URL(req.url);
@@ -213,7 +213,7 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("GALLERY");
   if (auth instanceof NextResponse) return auth;
 
   const id = new URL(req.url).searchParams.get("id");

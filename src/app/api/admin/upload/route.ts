@@ -4,10 +4,10 @@ export const revalidate = 0;
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { NextResponse } from "next/server";
-import { requireAdminApi } from "@/lib/auth";
+import { requirePermissionApi } from "@/lib/auth";
 
 export async function POST(req: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requirePermissionApi("GALLERY");
   if (auth instanceof NextResponse) return auth;
 
   try {
