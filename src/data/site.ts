@@ -52,7 +52,7 @@ export const clinicContactData = {
   social: {
     facebook: "https://www.facebook.com/mouhannad.saoudi.2025",
     instagram:
-      "https://www.instagram.com/tmj.dr.mouhannad?stkn=MTAwdXFvd29jdXpmaQ%3D%3D&utm_source=qr",
+      "https://www.instagram.com/davincidamas/",
   },
 } as const;
 
