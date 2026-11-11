@@ -12,7 +12,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test:appointments": "node --import ./tests/server-only.mjs --import tsx --test --test-isolation=none tests/appointments.test.ts",
+    "test:appointments:integration": "node --env-file=.env --import ./tests/server-only.mjs --import tsx --test --test-isolation=none tests/appointments.integration.test.ts"
   },
   "dependencies": {
     "@google-analytics/data": "^7.3.0",

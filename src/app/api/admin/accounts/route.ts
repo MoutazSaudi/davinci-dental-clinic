@@ -18,6 +18,9 @@ import {
 const permissionSchema = z.enum([
   "OVERVIEW",
   "APPOINTMENTS",
+  "APPOINTMENTS_VIEW_ALL", "APPOINTMENTS_CREATE", "APPOINTMENTS_UPDATE_OWN",
+  "APPOINTMENTS_UPDATE_ANY", "APPOINTMENTS_ASSIGN", "APPOINTMENTS_CANCEL",
+  "APPOINTMENTS_STATUS", "APPOINTMENTS_CONTACT", "APPOINTMENTS_REMIND",
   "MESSAGES",
   "DOCTORS",
   "GALLERY",
@@ -26,6 +29,7 @@ const permissionSchema = z.enum([
 ]);
 
 const createSchema = z.object({
+  doctorId: z.string().min(1).max(100).nullable().optional(),
   username: z
     .string()
     .trim()
@@ -48,6 +52,7 @@ const createSchema = z.object({
 });
 
 const updateSchema = z.object({
+  doctorId: z.string().min(1).max(100).nullable().optional(),
   name: z
     .string()
     .trim()
@@ -68,6 +73,7 @@ type Row = {
   id: string;
   username: string;
   name: string | null;
+  doctorId: string | null;
   role: string;
   permissions: string[];
   isActive: boolean;
@@ -81,6 +87,7 @@ function serialize(u: Row) {
     id: u.id,
     username: u.username,
     name: u.name,
+    doctorId: u.doctorId,
     role: u.role,
     permissions: u.permissions,
     isActive: u.isActive,
@@ -113,6 +120,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const payload = createSchema.parse(body);
     const username = payload.username.toLowerCase();
+    if (payload.doctorId && !await prisma.doctor.findUnique({ where: { id: payload.doctorId } })) return NextResponse.json({ error: "invalidDoctor" }, { status: 400 });
 
     // Business rule: Editor must have at least one permission
     if (payload.role === "EDITOR" && payload.permissions.length === 0) {
@@ -141,6 +149,7 @@ export async function POST(req: Request) {
     const user = await prisma.adminUser.create({
       data: {
         username,
+        doctorId: payload.doctorId,
         name: payload.name || null,
         passwordHash: createPasswordRecord(payload.password),
         role: payload.role,
@@ -238,7 +247,9 @@ export async function PATCH(req: Request) {
       );
     }
 
+    if (payload.doctorId && !await prisma.doctor.findUnique({ where: { id: payload.doctorId } })) return NextResponse.json({ error: "invalidDoctor" }, { status: 400 });
     const data: Record<string, unknown> = {};
+    if (payload.doctorId !== undefined) data.doctorId = payload.doctorId;
     if (payload.name !== undefined) data.name = payload.name || null;
     if (payload.role !== undefined) data.role = payload.role;
     if (payload.isActive !== undefined) data.isActive = payload.isActive;

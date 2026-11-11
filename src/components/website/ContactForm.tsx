@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { appointmentSchema } from "@/lib/validations/appointment";
+import { clinicDateInput, clinicTimeToIso } from "@/lib/appointments/time";
+import { appointmentText, appointmentMessage } from "@/lib/i18n/appointments";
 import type { Locale } from "@/lib/i18n";
 import { Toast, type ToastVariant } from "@/components/ui/Toast";
 
@@ -43,13 +46,15 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 
 export function ContactForm({
   locale,
-  whatsappNumber,
   doctors = [],
   services = [],
   initialDoctorSlug,
   initialServiceSlug,
 }: ContactFormProps) {
   const isArabic = locale === "ar";
+  const text = appointmentText[locale];
+  const [emailConsent, setEmailConsent] = useState(false);
+  const [whatsappConsent, setWhatsappConsent] = useState(false);
 
   const [type, setType] = useState<RequestType>(
     initialDoctorSlug || initialServiceSlug ? "booking" : "inquiry"
@@ -73,7 +78,9 @@ export function ContactForm({
   } | null>(null);
 
   // Keep prefill in sync if URL changes via client-side navigation
-  useEffect(() => {
+  const [previousPrefill, setPreviousPrefill] = useState({ initialDoctorSlug, initialServiceSlug });
+  if (previousPrefill.initialDoctorSlug !== initialDoctorSlug || previousPrefill.initialServiceSlug !== initialServiceSlug) {
+    setPreviousPrefill({ initialDoctorSlug, initialServiceSlug });
     if (initialDoctorSlug) {
       setForm((f) => ({ ...f, doctorSlug: initialDoctorSlug }));
       setType("booking");
@@ -82,7 +89,7 @@ export function ContactForm({
       setForm((f) => ({ ...f, serviceSlug: initialServiceSlug }));
       setType("booking");
     }
-  }, [initialDoctorSlug, initialServiceSlug]);
+  }
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -99,41 +106,50 @@ export function ContactForm({
   function validate(): FormErrors {
     const nextErrors: FormErrors = {};
 
-    if (!form.name.trim()) {
-      nextErrors.name = isArabic
-        ? "يرجى إدخال الاسم الكامل."
-        : "Please enter your full name.";
-    }
-
-    if (!form.phone.trim()) {
-      nextErrors.phone = isArabic
-        ? "يرجى إدخال رقم الهاتف."
-        : "Please enter your phone number.";
-    } else if (!/^[+0-9\s()\-]{7,}$/.test(form.phone.trim())) {
-      nextErrors.phone = isArabic
-        ? "رقم الهاتف غير صحيح."
-        : "Please enter a valid phone number.";
-    }
-
     if (type === "inquiry") {
+      if (!form.name.trim()) {
+        nextErrors.name = isArabic
+          ? "يرجى إدخال الاسم الكامل."
+          : "Please enter your full name.";
+      }
+
+      if (!form.phone.trim()) {
+        nextErrors.phone = isArabic
+          ? "يرجى إدخال رقم الهاتف."
+          : "Please enter your phone number.";
+      } else if (!/^[+0-9\s()\-]{7,}$/.test(form.phone.trim())) {
+        nextErrors.phone = isArabic
+          ? "رقم الهاتف غير صحيح."
+          : "Please enter a valid phone number.";
+      }
+
       if (form.message.trim().length < 12) {
         nextErrors.message = isArabic
           ? "يرجى كتابة رسالة واضحة."
           : "Please describe your enquiry in a little more detail.";
       }
     } else {
-      if (!form.scheduledAt) {
-        nextErrors.scheduledAt = isArabic
-          ? "يرجى تحديد التاريخ والوقت."
-          : "Please choose a date and time.";
-      } else if (new Date(form.scheduledAt).getTime() < Date.now() - 60_000) {
-        nextErrors.scheduledAt = isArabic
-          ? "لا يمكن اختيار وقت في الماضي."
-          : "The selected time is in the past.";
+      const result = appointmentSchema.safeParse(bookingPayload());
+      if (!result.success) {
+        const fields: Record<string, keyof FormState> = { patientName: "name", patientPhone: "phone", patientEmail: "email", scheduledAt: "scheduledAt", serviceSlug: "serviceSlug", notes: "message" };
+        for (const issue of result.error.issues) {
+          const key = fields[String(issue.path[0])];
+          if (key) nextErrors[key] = appointmentMessage(String(issue.path[0]) === "scheduledAt" ? "futureDate" : String(issue.path[0]), locale);
+        }
       }
     }
 
     return nextErrors;
+  }
+
+  function bookingPayload() {
+    return {
+      patientName: form.name.trim(), patientPhone: form.phone.trim(),
+      patientEmail: form.email.trim(), scheduledAt: clinicTimeToIso(form.scheduledAt),
+      doctorId: doctors.find(d => d.slug === form.doctorSlug)?.id ?? null,
+      serviceSlug: form.serviceSlug, notes: form.message.trim(), locale,
+      emailReminderConsent: emailConsent, whatsappReminderConsent: whatsappConsent,
+    };
   }
 
   /* ─────────────── Submit ─────────────── */
@@ -182,30 +198,17 @@ export function ContactForm({
             : "Your inquiry was received. We'll get back to you soon.",
         });
       } else {
-        const selectedDoctor = doctors.find(
-          (d) => d.slug === form.doctorSlug
-        );
-
         const response = await fetch("/api/appointments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patientName: form.name.trim(),
-            patientPhone: form.phone.trim(),
-            patientEmail: form.email.trim() || undefined,
-            scheduledAt: new Date(form.scheduledAt).toISOString(),
-            doctorId: selectedDoctor?.id || undefined,
-            serviceSlug: form.serviceSlug || undefined,
-            notes: form.message.trim() || undefined,
-            locale: isArabic ? "ar" : "en",
-          }),
+          body: JSON.stringify(appointmentSchema.parse(bookingPayload())),
         });
 
         const data = await response.json().catch(() => null);
 
         if (!response.ok) {
           throw new Error(
-            data?.message ||
+            (data?.error ? appointmentMessage(data.error, locale) : data?.message) ||
               (isArabic
                 ? "تعذر إرسال طلب الحجز. حاول مرة أخرى."
                 : "Your booking could not be sent. Please try again.")
@@ -231,6 +234,8 @@ export function ContactForm({
         serviceSlug: initialServiceSlug ?? "",
       });
       setErrors({});
+      setEmailConsent(false);
+      setWhatsappConsent(false);
     } catch (err) {
       setToast({
         variant: "error",
@@ -256,11 +261,7 @@ export function ContactForm({
   const labelClass =
     "mb-2 block text-sm font-semibold text-foreground";
 
-  const minDateTime = (() => {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
-  })();
+  const minDateTime = clinicDateInput();
 
   const submitLabel = isSubmitting
     ? isArabic
@@ -396,8 +397,10 @@ export function ContactForm({
                 className={`${inputBase} ${inputOk}`}
                 placeholder="example@mail.com"
                 autoComplete="email"
+                aria-invalid={Boolean(errors.email)}
                 dir="ltr"
               />
+              {errors.email && <p className="mt-2 text-sm text-error">{errors.email}</p>}
             </div>
           </div>
 
@@ -469,7 +472,7 @@ export function ContactForm({
 
                 <div>
                   <label htmlFor="contact-service" className={labelClass}>
-                    {isArabic ? "الخدمة (اختياري)" : "Service (optional)"}
+                    {isArabic ? "الخدمة" : "Service"}
                   </label>
                   <select
                     id="contact-service"
@@ -477,6 +480,8 @@ export function ContactForm({
                     onChange={(e) => handleChange("serviceSlug", e.target.value)}
                     className={`${inputBase} ${inputOk}`}
                     disabled={services.length === 0}
+                    required
+                    aria-invalid={Boolean(errors.serviceSlug)}
                   >
                     <option value="">
                       {services.length === 0
@@ -493,8 +498,12 @@ export function ContactForm({
                       </option>
                     ))}
                   </select>
+                  {errors.serviceSlug && <p className="mt-2 text-sm text-error">{errors.serviceSlug}</p>}
                 </div>
               </div>
+              <p className="text-sm text-foreground-muted">{text.timezone}</p>
+              <label className="flex items-start gap-2 text-sm text-foreground"><input type="checkbox" checked={emailConsent} onChange={e => setEmailConsent(e.target.checked)} />{text.emailConsent}</label>
+              <label className="flex items-start gap-2 text-sm text-foreground"><input type="checkbox" checked={whatsappConsent} onChange={e => setWhatsappConsent(e.target.checked)} />{text.whatsappConsent}</label>
             </div>
           )}
 

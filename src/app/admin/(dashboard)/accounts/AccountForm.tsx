@@ -8,6 +8,7 @@ export type AccountRow = {
   id: string;
   username: string;
   name: string | null;
+  doctorId: string | null;
   role: "ADMIN" | "EDITOR";
   permissions: string[];
   isActive: boolean;
@@ -19,6 +20,9 @@ export type AccountRow = {
 const ALL_PERMISSIONS = [
   "OVERVIEW",
   "APPOINTMENTS",
+  "APPOINTMENTS_VIEW_ALL", "APPOINTMENTS_CREATE", "APPOINTMENTS_UPDATE_OWN",
+  "APPOINTMENTS_UPDATE_ANY", "APPOINTMENTS_ASSIGN", "APPOINTMENTS_CANCEL",
+  "APPOINTMENTS_STATUS", "APPOINTMENTS_CONTACT", "APPOINTMENTS_REMIND",
   "MESSAGES",
   "DOCTORS",
   "GALLERY",
@@ -55,28 +59,40 @@ const USERNAME_PATTERN = /^[a-z0-9_-]+$/i;
 export default function AccountForm({ open, editing, onClose, onSaved }: Props) {
   const { t, isRtl } = useAdminT();
 
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
+  const [doctorId, setDoctorId] = useState(editing?.doctorId ?? "");
+  const [doctors, setDoctors] = useState<Array<{ id: string; name: { en: string; ar: string } }>>([]);
+  const [username, setUsername] = useState(editing?.username ?? "");
+  const [name, setName] = useState(editing?.name ?? "");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "EDITOR">("EDITOR");
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [role, setRole] = useState<"ADMIN" | "EDITOR">(editing?.role ?? "EDITOR");
+  const [permissions, setPermissions] = useState<Permission[]>(ALL_PERMISSIONS.filter(p => editing?.permissions.includes(p)));
 
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Touched>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  /* Reset on open */
   useEffect(() => {
     if (!open) return;
+    const controller = new AbortController();
+    void fetch("/api/admin/doctors", { signal: controller.signal }).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setDoctors(data);
+    }).catch(() => { if (!controller.signal.aborted) setServerError(t.common.networkError); });
+    return () => controller.abort();
+  }, [open, t.common.networkError]);
+
+  const [previous, setPrevious] = useState({ open, editing });
+  if (previous.open !== open || previous.editing !== editing) {
+    setPrevious({ open, editing });
+    setDoctorId(editing?.doctorId ?? "");
     if (editing) {
       setUsername(editing.username);
       setName(editing.name ?? "");
       setPassword("");
       setNewPassword("");
       setRole(editing.role);
-      setPermissions((editing.permissions as Permission[]) ?? []);
+      setPermissions(ALL_PERMISSIONS.filter(p => editing.permissions.includes(p)));
     } else {
       setUsername("");
       setName("");
@@ -88,7 +104,7 @@ export default function AccountForm({ open, editing, onClose, onSaved }: Props) 
     setErrors({});
     setTouched({});
     setServerError(null);
-  }, [open, editing]);
+  }
 
   /* ─────────────── Validators ─────────────── */
 
@@ -264,6 +280,7 @@ export default function AccountForm({ open, editing, onClose, onSaved }: Props) 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: username.trim().toLowerCase(),
+            doctorId: doctorId || null,
             name: name.trim() || undefined,
             password,
             role,
@@ -278,6 +295,7 @@ export default function AccountForm({ open, editing, onClose, onSaved }: Props) 
         }
       } else {
         const body: Record<string, unknown> = {
+          doctorId: doctorId || null,
           name: name.trim() || undefined,
           role,
           permissions: role === "ADMIN" ? [] : permissions,
@@ -495,6 +513,13 @@ export default function AccountForm({ open, editing, onClose, onSaved }: Props) 
             )}
           </Section>
 
+          <label className="block text-sm">
+            {t.accounts.linkedDoctor}
+            <select value={doctorId} onChange={e => setDoctorId(e.target.value)} className={fieldClass(false)}>
+              <option value="">{t.appointments.unassignedShort}</option>
+              {doctors.map(d => <option key={d.id} value={d.id}>{d.name[isRtl ? "ar" : "en"]}</option>)}
+            </select>
+          </label>
           {/* ───────── Role ───────── */}
           <Section
             title={t.accounts.sectionRole}

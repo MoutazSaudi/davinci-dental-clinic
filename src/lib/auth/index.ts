@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { APPOINTMENT_PERMISSIONS } from "@/lib/appointments/policy";
 
 export { createPasswordRecord, verifyPasswordRecord } from "./password";
 
@@ -15,6 +16,7 @@ export type AdminRole = "ADMIN" | "EDITOR";
 
 export type AdminPermission =
   | "OVERVIEW"
+  | (typeof APPOINTMENT_PERMISSIONS)[number]
   | "APPOINTMENTS"
   | "MESSAGES"
   | "DOCTORS"
@@ -25,6 +27,7 @@ export type AdminPermission =
 export const ALL_PERMISSIONS: AdminPermission[] = [
   "OVERVIEW",
   "APPOINTMENTS",
+  ...APPOINTMENT_PERMISSIONS,
   "MESSAGES",
   "DOCTORS",
   "GALLERY",
@@ -41,6 +44,7 @@ export type AdminSession = {
 export type AdminUserPublic = {
   id: string;
   username: string;
+  doctorId: string | null;
   name: string | null;
   role: AdminRole;
   permissions: AdminPermission[];
@@ -135,6 +139,7 @@ function devUser(): AdminUserPublic {
   return {
     id: "dev",
     username: "dev",
+    doctorId: null,
     name: "Dev Admin",
     role: "ADMIN",
     permissions: ALL_PERMISSIONS,
@@ -157,6 +162,7 @@ export async function getAdminUser(): Promise<AdminUserPublic | null> {
   return {
     id: user.id,
     username: user.username,
+    doctorId: user.doctorId,
     name: user.name,
     role: user.role as AdminRole,
     permissions: user.permissions as AdminPermission[],
