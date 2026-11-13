@@ -8,6 +8,7 @@ import { ServicesOverviewAndWhyUs } from "@/components/website/ServicesOverviewA
 import { SignatureServicesSection } from "@/components/website/SignatureServicesSection";
 import { TestimonialsAndFAQ } from "@/components/website/TestimonialsAndFAQ";
 import { VideoShowcase } from "@/components/website/VideoShowcase";
+import { getActiveVideo } from "@/lib/services/video.service";
 import {
   getCategories,
   getPageContent,
@@ -58,6 +59,7 @@ export default async function LocaleHomePage({
   const messages = getMessages(safeLocale as Locale);
   const content = getPageContent(safeLocale as Locale);
   const isArabic = safeLocale === "ar";
+  const video = await getActiveVideo();
 
   /* كل كتل JSON-LD تُبنى من seo.ts */
   const jsonLdBlocks = buildPageJsonLd("home", safeLocale);
@@ -82,7 +84,8 @@ export default async function LocaleHomePage({
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <VideoShowcase
           locale={safeLocale as "ar" | "en"}
-          src="/video/v.mp4"
+          key={video.url}
+          src={video.url}
           eyebrow={isArabic ? "تعرف على العيادة" : "Meet the Clinic"}
           title={
             isArabic

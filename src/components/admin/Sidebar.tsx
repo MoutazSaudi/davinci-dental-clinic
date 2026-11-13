@@ -14,6 +14,7 @@ type NavIconName =
   | "messages"
   | "doctors"
   | "gallery"
+  | "video"
   | "faq"
   | "services"
   | "settings"
@@ -37,6 +38,7 @@ const translations = {
       { href: "/admin/messages", label: "Messages", icon: "messages", permission: "MESSAGES" },
       { href: "/admin/doctors", label: "Doctors", icon: "doctors", permission: "DOCTORS" },
       { href: "/admin/gallery", label: "Gallery", icon: "gallery", permission: "GALLERY" },
+      { href: "/admin/videos", label: "Video Management", icon: "video", permission: null, adminOnly: true },
       { href: "/admin/faq", label: "FAQ", icon: "faq", permission: "FAQ" },
       { href: "/admin/services", label: "Services", icon: "services", permission: "SERVICES" },
       { href: "/admin/accounts", label: "Accounts", icon: "accounts", permission: null, adminOnly: true },
@@ -55,6 +57,7 @@ const translations = {
       { href: "/admin/messages", label: "الرسائل", icon: "messages", permission: "MESSAGES" },
       { href: "/admin/doctors", label: "الأطباء", icon: "doctors", permission: "DOCTORS" },
       { href: "/admin/gallery", label: "المعرض", icon: "gallery", permission: "GALLERY" },
+      { href: "/admin/videos", label: "إدارة الفيديو", icon: "video", permission: null, adminOnly: true },
       { href: "/admin/faq", label: "الأسئلة الشائعة", icon: "faq", permission: "FAQ" },
       { href: "/admin/services", label: "الخدمات", icon: "services", permission: "SERVICES" },
       { href: "/admin/accounts", label: "الحسابات", icon: "accounts", permission: null, adminOnly: true },
@@ -74,6 +77,12 @@ function NavIcon({
   className?: string;
 }) {
   const paths: Record<NavIconName, React.ReactNode> = {
+    video: (
+      <>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m10 9 5 3-5 3z" />
+      </>
+    ),
     overview: (
       <>
         <path d="M3 12 12 3l9 9" />

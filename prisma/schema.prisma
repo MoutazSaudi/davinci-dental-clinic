@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// A single shared showcase video for both public locales (id = "showcase").
+model VideoSetting {
+  id           String   @id
+  path         String
+  originalName String
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 enum ContentStatus {
   DRAFT
   PUBLISHED
