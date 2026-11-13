@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { tmpdir } from "node:os";
 import { PrismaClient } from "@prisma/client";
 import fs from "node:fs/promises";
@@ -23,7 +23,7 @@ test("video upload API and database lifecycle in an isolated PostgreSQL schema",
   await root.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
   url.searchParams.set("schema", schema);
   process.env.DATABASE_URL = url.toString();
-  process.env.VIDEO_UPLOAD_DIR = join(directory, "uploads", "videos");
+  process.env.VIDEO_UPLOAD_DIR = relative(process.cwd(), join(directory, "uploads", "videos"));
   process.env.AUTH_ENABLED = "true";
   process.env.AUTH_SECRET = "video-test-only-secret-at-least-32-characters";
   process.env.VIDEO_TEST_AUTH = "true";

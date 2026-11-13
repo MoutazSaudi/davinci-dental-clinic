@@ -13,30 +13,26 @@ cleanup policy. Persistence must be provisioned at deployment.
 
 1. Run `pnpm db:deploy` to apply `20261113120000_video_setting`, then generate the
    Prisma client (`pnpm prisma:generate`) before building the application.
-2. Provision persistent server storage outside the code/release directory, e.g.
-   `/var/lib/davinci/uploads/videos`. Set `VIDEO_UPLOAD_DIR` to that absolute path
-   in the application's runtime environment. The Node.js user must own it and
+2. Set `VIDEO_UPLOAD_DIR=uploads/videos` in the application's runtime environment,
+   as required by the production server owner. Relative values are resolved
+   against the actual Next.js project working directory (`process.cwd()`).
+   Absolute values are also supported and preserved. The Node.js user must
    have read/write/traverse permission. The application automatically creates all
    missing directories recursively at the start of an authorized upload, and
    checks again before writing the file. Manual directory creation is unnecessary
    if the nearest existing parent is writable. Suggested directory permissions: `0750`.
-3. Keep this path and its filesystem across restarts, rollbacks and releases.
+3. Preserve the project's `uploads/videos` directory and its filesystem across
+   restarts, rollbacks and releases. The deployment must retain it when updating
+   or replacing the application checkout; the relative path alone does not
+   provide persistence.
    Back up this directory together with PostgreSQL: the database stores relative
    `uploads/videos/<uuid>.<extension>` paths and metadata, not the file bytes.
 4. For a containerized application, mount a named persistent volume or host bind
-   mount at `/var/lib/davinci/uploads/videos`, and set `VIDEO_UPLOAD_DIR` to that
-   same container path. Example addition to the **application** service (which
-   is not currently defined in the project's Compose file):
-
-   ```yaml
-   environment:
-     VIDEO_UPLOAD_DIR: /var/lib/davinci/uploads/videos
-   volumes:
-     - clinic_videos:/var/lib/davinci/uploads/videos
-   ```
-
-   Declare `clinic_videos:` under the top-level `volumes:` mapping. Never remove
-   that volume during deployments (`docker compose down -v` destroys volumes).
+   mount at the container's actual project working directory plus `/uploads/videos`.
+   Keep `VIDEO_UPLOAD_DIR=uploads/videos`. The application service is not currently
+   defined in the project's Compose file, so its container working directory
+   and mount target must be supplied by the deployment configuration. Never remove
+   the upload volume during deployments (`docker compose down -v` destroys volumes).
    Multiple app replicas must share the same durable filesystem and database.
 5. With Nginx or another reverse proxy, permit at least 20 MiB request bodies
    (`client_max_body_size 21m;` allows the full application limit). Preserve the
@@ -44,9 +40,13 @@ cleanup policy. Persistence must be provisioned at deployment.
    the upload Origin matches it, even when TLS terminates at the proxy. Forward Range, If-Range and If-None-Match
    headers to Next.js. Allow sufficient upload timeouts for slow connections.
 
-Production uploads fail with `storageNotConfigured` unless an absolute
-`VIDEO_UPLOAD_DIR` is configured; a relative path returns `storageInvalidPath`.
-The configured path is normalized to an absolute path for all filesystem access.
+Production uploads fail with `storageNotConfigured` unless `VIDEO_UPLOAD_DIR`
+is configured. Relative paths are converted to absolute paths with
+`resolve(process.cwd(), directory)`; absolute paths are preserved. A null byte
+in the value returns `storageInvalidPath`. Directory creation, writes, cleanup
+and delivery all use this same resolved filesystem directory. Public URLs are
+generated independently as `/media/videos/<uuid>.<extension>` and never include
+the absolute server path.
 Setting a path does not itself make the disk
 persistent: the operator must provision the mount described above. Known
 serverless runtimes (Vercel, Netlify and AWS Lambda) are rejected because their
@@ -65,7 +65,7 @@ The upload API now returns a safe English `message` alongside the specific
 | Error | Meaning / server-owner action |
 | --- | --- |
 | `storageNotConfigured` | Set `VIDEO_UPLOAD_DIR` in the **running application's** environment. |
-| `storageInvalidPath` | Use an absolute directory path, e.g. `/var/lib/davinci/uploads/videos`. |
+| `storageInvalidPath` | Remove invalid path characters (null bytes). Relative and absolute paths are accepted. |
 | `storageUnavailable` | A known unsupported serverless runtime was detected; persistent filesystem hosting is required. |
 | `storageDirectoryFailed` | Recursive directory creation failed; check that every existing path component is a directory and the configured location is valid. |
 | `storagePermissionDenied` | The operation failed with `EACCES`/`EPERM`; grant the Node.js process access to the target/parent directory. |
@@ -82,8 +82,8 @@ settings, the required path can be set there without a terminal. Otherwise your
 friend must configure the application's environment/deployment once and confirm
 that the target storage survives releases. The app cannot grant itself missing
 filesystem permissions, make a read-only disk writable, or make an ephemeral
-filesystem persistent. It deliberately does not fall back to `/tmp` or an
-unverified production release directory. Do not change an existing storage path
+filesystem persistent. It does not fall back to `/tmp`; the production directory
+must be explicitly configured and preserved by deployment. Do not change an existing storage path
 without preserving/moving its managed files to the new location.
 
 ## Behavior

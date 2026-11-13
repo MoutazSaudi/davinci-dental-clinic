@@ -12,15 +12,16 @@ export function videoStorageDirectory() {
     console.error("[video-storage] Persistent local storage is unsupported by this runtime.", { code: "UNSUPPORTED_RUNTIME" });
     throw new VideoUploadError("storageUnavailable", 503);
   }
-  if (configured && (!isAbsolute(configured) || configured.includes("\0"))) {
-    console.error("[video-storage] VIDEO_UPLOAD_DIR must be an absolute directory path.", { code: "INVALID_VIDEO_UPLOAD_DIR" });
+  if (configured?.includes("\0")) {
+    console.error("[video-storage] VIDEO_UPLOAD_DIR contains an invalid path character.", { code: "INVALID_VIDEO_UPLOAD_DIR" });
     throw new VideoUploadError("storageInvalidPath", 503);
   }
   if (process.env.NODE_ENV === "production" && !configured) {
     console.error("[video-storage] Set VIDEO_UPLOAD_DIR to a writable persistent directory in the application runtime environment.", { code: "MISSING_VIDEO_UPLOAD_DIR" });
     throw new VideoUploadError("storageNotConfigured", 503);
   }
-  return configured ? resolve(configured) : resolve(process.cwd(), "uploads", "videos");
+  const directory = configured || "uploads/videos";
+  return isAbsolute(directory) ? directory : resolve(process.cwd(), directory);
 }
 
 type StorageOperation = "createDirectory" | "write" | "read" | "cleanup";

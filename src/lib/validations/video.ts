@@ -16,7 +16,7 @@ export function videoMetadataError(name: string, type: string, size: number) {
 export const VIDEO_STORAGE_ERROR_MESSAGES = {
   storageUnavailable: "This hosting runtime does not support persistent local video storage. Ask the server owner to configure a supported persistent filesystem.",
   storageNotConfigured: "Video storage is not configured. Ask the server owner to set VIDEO_UPLOAD_DIR to a writable persistent directory.",
-  storageInvalidPath: "The video storage configuration is invalid. VIDEO_UPLOAD_DIR must be an absolute directory path.",
+  storageInvalidPath: "The video storage configuration is invalid. VIDEO_UPLOAD_DIR contains an invalid path character.",
   storageDirectoryFailed: "The application could not create the video upload directory. Ask the server owner to check the configured directory and its parent directories.",
   storagePermissionDenied: "The server denied access to video storage. Ask the server owner to grant the application read and write permissions.",
   storageReadOnly: "Video storage is on a read-only filesystem. Ask the server owner to provide a writable persistent volume.",

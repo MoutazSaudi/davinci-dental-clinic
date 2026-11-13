@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import { MAX_VIDEO_BYTES, VideoUploadError, videoMetadataError } from "../src/lib/validations/video";
@@ -113,11 +113,20 @@ test("storage distinguishes missing production config, invalid paths and ephemer
     assert.equal(videoStorageDirectory(), join(process.cwd(), "uploads", "videos"));
     Object.assign(process.env, { NODE_ENV: "production" });
     assert.throws(videoStorageDirectory, { code: "storageNotConfigured", status: 503 });
-    process.env.VIDEO_UPLOAD_DIR = "relative/uploads/videos";
-    assert.throws(videoStorageDirectory, { code: "storageInvalidPath", status: 503 });
-    process.env.VIDEO_UPLOAD_DIR = "/tmp/uploads/./videos/../videos";
-    assert.equal(videoStorageDirectory(), "/tmp/uploads/videos");
-    process.env.VIDEO_UPLOAD_DIR = "/tmp/uploads/videos";
+    process.env.VIDEO_UPLOAD_DIR = "uploads/videos";
+    assert.equal(videoStorageDirectory(), join(process.cwd(), "uploads", "videos"));
+    process.env.VIDEO_UPLOAD_DIR = "./uploads/./videos";
+    assert.equal(videoStorageDirectory(), join(process.cwd(), "uploads", "videos"));
+    // Node truncates null bytes assigned to its native environment object.
+    // Use an ordinary object to exercise the invalid-character defense.
+    const runtimeEnvironment = process.env;
+    try {
+      process.env = { ...runtimeEnvironment, VIDEO_UPLOAD_DIR: "uploads/videos\0invalid" };
+      assert.throws(videoStorageDirectory, { code: "storageInvalidPath", status: 503 });
+    } finally { process.env = runtimeEnvironment; }
+    const absolute = `${tmpdir()}/uploads/./videos/../videos`;
+    process.env.VIDEO_UPLOAD_DIR = absolute;
+    assert.equal(videoStorageDirectory(), absolute, "Absolute configuration is preserved verbatim");
     process.env.VERCEL = "1";
     assert.throws(videoStorageDirectory, { code: "storageUnavailable" });
     assert.deepEqual(log.mock.calls.map(call => call.arguments[1]), [
@@ -133,14 +142,15 @@ test("storage distinguishes missing production config, invalid paths and ephemer
 test("storage creates missing nested directories without manual setup", async t => {
   const directory = await mkdtemp(join(tmpdir(), "davinci-storage-create-"));
   const previous = process.env.VIDEO_UPLOAD_DIR;
-  process.env.VIDEO_UPLOAD_DIR = join(directory, "missing", "uploads", "videos");
+  const absoluteDirectory = join(directory, "missing", "uploads", "videos");
+  process.env.VIDEO_UPLOAD_DIR = relative(process.cwd(), absoluteDirectory);
   t.after(async () => {
     if (previous === undefined) delete process.env.VIDEO_UPLOAD_DIR; else process.env.VIDEO_UPLOAD_DIR = previous;
     await rm(directory, { recursive: true, force: true });
   });
-  assert.equal(await ensureVideoStorageDirectory(), process.env.VIDEO_UPLOAD_DIR);
-  assert.ok((await fs.stat(process.env.VIDEO_UPLOAD_DIR)).isDirectory());
-  assert.equal(await ensureVideoStorageDirectory(), process.env.VIDEO_UPLOAD_DIR);
+  assert.equal(await ensureVideoStorageDirectory(), absoluteDirectory);
+  assert.ok((await fs.stat(absoluteDirectory)).isDirectory());
+  assert.equal(await ensureVideoStorageDirectory(), absoluteDirectory);
 });
 
 test("storage classifies filesystem errors and logs the real errno without raw messages", async t => {
