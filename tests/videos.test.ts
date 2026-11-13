@@ -4,9 +4,10 @@ import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/prom
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { MAX_VIDEO_BYTES, videoMetadataError } from "../src/lib/validations/video";
+import fs from "node:fs/promises";
+import { MAX_VIDEO_BYTES, VideoUploadError, videoMetadataError } from "../src/lib/validations/video";
 import { validVideoContent } from "../src/lib/validations/video-content";
-import { readVideoUpload, storeVideo, deleteManagedVideo, videoStorageDirectory } from "../src/lib/services/video-storage";
+import { ensureVideoStorageDirectory, readVideoUpload, storeVideo, deleteManagedVideo, videoStorageDirectory } from "../src/lib/services/video-storage";
 import { serveVideo, videoByteRange } from "../src/lib/services/video-delivery";
 import { webmFixture } from "./video-fixtures";
 
@@ -103,17 +104,74 @@ test("UUID storage, GET/HEAD/ranges, symlink/path isolation, original fallback p
   }
 });
 
-test("storage rejects relative paths and known ephemeral deployments", () => {
-  const previous = process.env.VIDEO_UPLOAD_DIR;
-  const vercel = process.env.VERCEL;
+test("storage distinguishes missing production config, invalid paths and ephemeral runtimes", t => {
+  const keys = ["VIDEO_UPLOAD_DIR", "NODE_ENV", "VERCEL", "NETLIFY", "AWS_LAMBDA_FUNCTION_NAME"];
+  const previous = new Map(keys.map(key => [key, process.env[key]]));
+  const log = t.mock.method(console, "error", () => undefined);
   try {
+    for (const key of keys) delete process.env[key];
+    assert.equal(videoStorageDirectory(), join(process.cwd(), "uploads", "videos"));
+    Object.assign(process.env, { NODE_ENV: "production" });
+    assert.throws(videoStorageDirectory, { code: "storageNotConfigured", status: 503 });
     process.env.VIDEO_UPLOAD_DIR = "relative/uploads/videos";
-    assert.throws(videoStorageDirectory, { code: "storageUnavailable" });
+    assert.throws(videoStorageDirectory, { code: "storageInvalidPath", status: 503 });
+    process.env.VIDEO_UPLOAD_DIR = "/tmp/uploads/./videos/../videos";
+    assert.equal(videoStorageDirectory(), "/tmp/uploads/videos");
     process.env.VIDEO_UPLOAD_DIR = "/tmp/uploads/videos";
     process.env.VERCEL = "1";
     assert.throws(videoStorageDirectory, { code: "storageUnavailable" });
+    assert.deepEqual(log.mock.calls.map(call => call.arguments[1]), [
+      { code: "MISSING_VIDEO_UPLOAD_DIR" }, { code: "INVALID_VIDEO_UPLOAD_DIR" }, { code: "UNSUPPORTED_RUNTIME" },
+    ]);
   } finally {
+    for (const [key, value] of previous) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  }
+});
+
+test("storage creates missing nested directories without manual setup", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "davinci-storage-create-"));
+  const previous = process.env.VIDEO_UPLOAD_DIR;
+  process.env.VIDEO_UPLOAD_DIR = join(directory, "missing", "uploads", "videos");
+  t.after(async () => {
     if (previous === undefined) delete process.env.VIDEO_UPLOAD_DIR; else process.env.VIDEO_UPLOAD_DIR = previous;
-    if (vercel === undefined) delete process.env.VERCEL; else process.env.VERCEL = vercel;
+    await rm(directory, { recursive: true, force: true });
+  });
+  assert.equal(await ensureVideoStorageDirectory(), process.env.VIDEO_UPLOAD_DIR);
+  assert.ok((await fs.stat(process.env.VIDEO_UPLOAD_DIR)).isDirectory());
+  assert.equal(await ensureVideoStorageDirectory(), process.env.VIDEO_UPLOAD_DIR);
+});
+
+test("storage classifies filesystem errors and logs the real errno without raw messages", async t => {
+  const directory = await mkdtemp(join(tmpdir(), "davinci-storage-errors-"));
+  const previous = process.env.VIDEO_UPLOAD_DIR;
+  process.env.VIDEO_UPLOAD_DIR = directory;
+  t.after(async () => {
+    if (previous === undefined) delete process.env.VIDEO_UPLOAD_DIR; else process.env.VIDEO_UPLOAD_DIR = previous;
+    await rm(directory, { recursive: true, force: true });
+  });
+  for (const [operation, errno, code, status] of [
+    ["mkdir", "EACCES", "storagePermissionDenied", 503],
+    ["mkdir", "EPERM", "storagePermissionDenied", 503],
+    ["mkdir", "EROFS", "storageReadOnly", 503],
+    ["mkdir", "ENOTDIR", "storageDirectoryFailed", 500],
+    ["writeFile", "EACCES", "storagePermissionDenied", 503],
+    ["writeFile", "EROFS", "storageReadOnly", 503],
+    ["writeFile", "ENOSPC", "storageError", 500],
+  ] as const) {
+    await t.test(`${operation}: ${errno}`, async child => {
+      const log = child.mock.method(console, "error", () => undefined);
+      child.mock.method(fs, operation, async () => { throw Object.assign(new Error("Sensitive native message /private/server/path"), { code: errno }); });
+      await assert.rejects(storeVideo(Buffer.from("test"), "mp4"), error => {
+        assert.ok(error instanceof VideoUploadError);
+        assert.equal(error.code, code);
+        assert.equal(error.status, status);
+        assert.ok(!error.message.includes("/private"));
+        return true;
+      });
+      assert.deepEqual(log.mock.calls[0].arguments[1], { operation: operation === "mkdir" ? "createDirectory" : "write", code: errno });
+      assert.ok(!JSON.stringify(log.mock.calls[0].arguments).includes("Sensitive native message"));
+    });
   }
 });

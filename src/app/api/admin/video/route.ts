@@ -2,14 +2,17 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { requireAdminRoleApi } from "@/lib/auth";
 import { getActiveVideo, replaceActiveVideo } from "@/lib/services/video.service";
-import { readVideoUpload, videoStorageDirectory } from "@/lib/services/video-storage";
-import { videoMetadataError, VideoUploadError } from "@/lib/validations/video";
+import { ensureVideoStorageDirectory, readVideoUpload } from "@/lib/services/video-storage";
+import { isVideoStorageErrorCode, VIDEO_STORAGE_ERROR_MESSAGES, videoMetadataError, VideoUploadError } from "@/lib/validations/video";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function failure(error: unknown) {
-  if (error instanceof VideoUploadError) return NextResponse.json({ error: error.code }, { status: error.status });
+  if (error instanceof VideoUploadError) {
+    const message = isVideoStorageErrorCode(error.code) ? VIDEO_STORAGE_ERROR_MESSAGES[error.code] : undefined;
+    return NextResponse.json({ error: error.code, ...(message ? { message } : {}) }, { status: error.status });
+  }
   console.error("Video management failed");
   return NextResponse.json({ error: "uploadFailed" }, { status: 500 });
 }
@@ -45,7 +48,7 @@ export async function POST(request: Request) {
     const mimeType = request.headers.get("content-type") || "";
     const metadataError = videoMetadataError(name, mimeType, 1);
     if (metadataError) throw new VideoUploadError(metadataError);
-    videoStorageDirectory();
+    await ensureVideoStorageDirectory();
     const bytes = await readVideoUpload(request);
     const active = await replaceActiveVideo(bytes, name, mimeType);
     // Commit is complete; a cache failure must not report a failed upload.

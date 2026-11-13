@@ -1,4 +1,5 @@
 import { DashboardLocale } from "@/app/hooks/useDashboardSettings";
+import { VIDEO_STORAGE_ERROR_MESSAGES } from "@/lib/validations/video";
 
 export type AdminLocale = DashboardLocale;
 
@@ -34,7 +35,7 @@ export const ADMIN_I18N = {
         invalidName: "The filename is invalid or longer than 255 characters. Rename the file and try again.",
         invalidContent: "The file is not a recognized MP4 or WebM video, or is damaged. Export it as MP4 or WebM and try again.",
         invalidRequest: "The upload was incomplete or invalid. Please try again.",
-        storageUnavailable: "Video storage is not configured. Configure a writable persistent volume on the server.",
+        ...VIDEO_STORAGE_ERROR_MESSAGES,
         uploadFailed: "Unable to upload or save the video. Please try again.",
         unauthorized: "Your session has expired. Sign in again.",
         forbidden: "You need an administrator account with a completed password setup to manage videos.",
@@ -487,7 +488,13 @@ export const ADMIN_I18N = {
         invalidName: "اسم الملف غير صالح أو يتجاوز 255 حرفًا. غيّر الاسم وحاول مجددًا.",
         invalidContent: "الملف ليس فيديو MP4 أو WebM معروفًا أو قد يكون تالفًا. أعد تصديره وحاول مجددًا.",
         invalidRequest: "الرفع غير مكتمل أو غير صالح. حاول مجددًا.",
-        storageUnavailable: "تخزين الفيديو غير مهيأ. يجب إعداد مساحة تخزين دائمة قابلة للكتابة على الخادم.",
+        storageUnavailable: "بيئة الاستضافة لا تدعم تخزين الفيديو محليًا بشكل دائم. اطلب من مسؤول الخادم توفير تخزين دائم مدعوم.",
+        storageNotConfigured: "تخزين الفيديو غير مهيأ. اطلب من مسؤول الخادم تعيين VIDEO_UPLOAD_DIR إلى مجلد دائم قابل للكتابة.",
+        storageInvalidPath: "إعداد مسار تخزين الفيديو غير صالح. يجب أن يكون VIDEO_UPLOAD_DIR مسار مجلد مطلقًا.",
+        storageDirectoryFailed: "تعذر إنشاء مجلد رفع الفيديو. اطلب من مسؤول الخادم التحقق من المجلد المحدد والمجلدات التي تحتويه.",
+        storagePermissionDenied: "رفض الخادم الوصول إلى تخزين الفيديو. اطلب من مسؤول الخادم منح التطبيق صلاحيات القراءة والكتابة.",
+        storageReadOnly: "تخزين الفيديو على نظام ملفات للقراءة فقط. اطلب من مسؤول الخادم توفير مساحة تخزين دائمة قابلة للكتابة.",
+        storageError: "فشلت عملية تخزين الفيديو. اطلب من مسؤول الخادم التحقق من المساحة المتاحة وسجلات الخادم.",
         uploadFailed: "تعذر رفع الفيديو أو حفظه. حاول مجددًا.",
         unauthorized: "انتهت الجلسة. سجّل الدخول مجددًا.",
         forbidden: "تحتاج إلى حساب مسؤول أتم إعداد كلمة المرور لإدارة الفيديو.",

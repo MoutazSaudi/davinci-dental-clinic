@@ -6,7 +6,8 @@ import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { PrismaClient } from "@prisma/client";
-import { MAX_VIDEO_BYTES } from "../src/lib/validations/video";
+import fs from "node:fs/promises";
+import { MAX_VIDEO_BYTES, VIDEO_STORAGE_ERROR_MESSAGES } from "../src/lib/validations/video";
 import { webmFixture } from "./video-fixtures";
 
 declare global { var __videoTestToken: string | undefined; }
@@ -71,6 +72,29 @@ test("video upload API and database lifecycle in an isolated PostgreSQL schema",
       const delivered = await serveVideo(new Request("http://localhost", { headers: { range: "bytes=1024-2047" } }), active.url.split("/").pop());
       assert.equal(delivered.status, 206);
       assert.deepEqual(Buffer.from(await delivered.arrayBuffer()), mp4.subarray(1024, 2048));
+    });
+    await t.test("storage failures return safe actionable responses and preserve the active video", async child => {
+      const previous = await getActiveVideo();
+      for (const [operation, errno, code, status] of [
+        ["mkdir", "EACCES", "storagePermissionDenied", 503],
+        ["mkdir", "EROFS", "storageReadOnly", 503],
+        ["mkdir", "ENOTDIR", "storageDirectoryFailed", 500],
+        ["writeFile", "ENOSPC", "storageError", 500],
+      ] as const) {
+        await child.test(code, async scenario => {
+          const log = scenario.mock.method(console, "error", () => undefined);
+          scenario.mock.method(fs, operation, async () => { throw Object.assign(new Error("Sensitive filesystem information /private/server/path"), { code: errno }); });
+          const response = await route.POST(request(mp4));
+          assert.equal(response.status, status);
+          const body = await response.json();
+          assert.deepEqual(body, { error: code, message: VIDEO_STORAGE_ERROR_MESSAGES[code] });
+          assert.ok(!JSON.stringify(body).includes("/private"));
+          assert.ok(!("stack" in body));
+          assert.deepEqual(log.mock.calls[0].arguments[1], { operation: operation === "mkdir" ? "createDirectory" : "write", code: errno });
+          assert.deepEqual(await getActiveVideo(), previous);
+          assert.equal((await files()).length, 1);
+        });
+      }
     });
     await t.test("oversize, invalid and interrupted uploads preserve previous setting and file", async () => {
       const previous = await getActiveVideo();

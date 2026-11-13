@@ -3,7 +3,11 @@
 The repository documents a Node.js VPS deployment (`pnpm build` / `pnpm start`).
 `docker-compose.yml` currently runs **only PostgreSQL**; its database volume does
 not persist application uploads. No application host or persistent video mount
-is configured in this repository. Persistence must be provisioned at deployment.
+is configured in this repository. There is no application Dockerfile, GitHub
+deployment workflow or hosting-provider manifest identifying the actual production
+environment. The documented VPS can use persistent local storage, but this
+repository cannot verify the production server's mounts, permissions or release
+cleanup policy. Persistence must be provisioned at deployment.
 
 ## Production setup (required)
 
@@ -12,8 +16,10 @@ is configured in this repository. Persistence must be provisioned at deployment.
 2. Provision persistent server storage outside the code/release directory, e.g.
    `/var/lib/davinci/uploads/videos`. Set `VIDEO_UPLOAD_DIR` to that absolute path
    in the application's runtime environment. The Node.js user must own it and
-   have read/write/traverse permission. The application creates the directory
-   if its parent is writable. Suggested directory permissions: `0750`.
+   have read/write/traverse permission. The application automatically creates all
+   missing directories recursively at the start of an authorized upload, and
+   checks again before writing the file. Manual directory creation is unnecessary
+   if the nearest existing parent is writable. Suggested directory permissions: `0750`.
 3. Keep this path and its filesystem across restarts, rollbacks and releases.
    Back up this directory together with PostgreSQL: the database stores relative
    `uploads/videos/<uuid>.<extension>` paths and metadata, not the file bytes.
@@ -38,13 +44,47 @@ is configured in this repository. Persistence must be provisioned at deployment.
    the upload Origin matches it, even when TLS terminates at the proxy. Forward Range, If-Range and If-None-Match
    headers to Next.js. Allow sufficient upload timeouts for slow connections.
 
-Production uploads fail with `storageUnavailable` unless an absolute
-`VIDEO_UPLOAD_DIR` is configured. Setting a path does not itself make the disk
+Production uploads fail with `storageNotConfigured` unless an absolute
+`VIDEO_UPLOAD_DIR` is configured; a relative path returns `storageInvalidPath`.
+The configured path is normalized to an absolute path for all filesystem access.
+Setting a path does not itself make the disk
 persistent: the operator must provision the mount described above. Known
 serverless runtimes (Vercel, Netlify and AWS Lambda) are rejected because their
 local filesystems do not satisfy this storage contract. Do not deploy this
 feature to an ephemeral/read-only host without a supported persistent volume.
 No cloud storage provider is used.
+
+## Troubleshooting without a production terminal
+
+The previous `storageUnavailable` code combined missing configuration, relative
+paths and unsupported serverless runtimes. It was thrown **before** directory
+creation, so that error alone did not identify a filesystem permission problem.
+The upload API now returns a safe English `message` alongside the specific
+`error` code; the dashboard displays the corresponding Arabic/English message.
+
+| Error | Meaning / server-owner action |
+| --- | --- |
+| `storageNotConfigured` | Set `VIDEO_UPLOAD_DIR` in the **running application's** environment. |
+| `storageInvalidPath` | Use an absolute directory path, e.g. `/var/lib/davinci/uploads/videos`. |
+| `storageUnavailable` | A known unsupported serverless runtime was detected; persistent filesystem hosting is required. |
+| `storageDirectoryFailed` | Recursive directory creation failed; check that every existing path component is a directory and the configured location is valid. |
+| `storagePermissionDenied` | The operation failed with `EACCES`/`EPERM`; grant the Node.js process access to the target/parent directory. |
+| `storageReadOnly` | The operation failed with `EROFS`; provide a writable persistent mount. |
+| `storageError` | Another file operation failed; check available disk space and server logs. |
+
+Server logs include `[video-storage]`, the operation and actual filesystem errno
+(e.g. `ENOSPC`), or a specific configuration diagnostic. Native error messages,
+absolute paths and stack traces are never included in upload error responses.
+
+Changing `.env.example` or your local Git-ignored `.env` does not configure a
+GitHub deployment's runtime. If the deployment platform exposes environment
+settings, the required path can be set there without a terminal. Otherwise your
+friend must configure the application's environment/deployment once and confirm
+that the target storage survives releases. The app cannot grant itself missing
+filesystem permissions, make a read-only disk writable, or make an ephemeral
+filesystem persistent. It deliberately does not fall back to `/tmp` or an
+unverified production release directory. Do not change an existing storage path
+without preserving/moving its managed files to the new location.
 
 ## Behavior
 
